@@ -28,18 +28,32 @@ private:
 public:
 	string login, role, password;
 	int id;
-	// getters
-	string setLogin() {
-		return this->login;
-	}
-	string setRole() {
-		return this->role;
-	}
-	string setPassword() {
-		return this->password;
-	}
+	
 
+	virtual void showMenu() {
+		while (true) {
+			cout << "1)Купить билет\n";
+			cout << "2)Посмотреть свободные места на фильм\n";
+			cout << "3)Мои билеты\n";
+			cout << "4)Выйти из аккаунта\n";
+			int command;
+			cout << ">>> ";
+			command = securityInt();
 
+			if (command == 1) {
+
+			}
+			else if (command == 2) {
+
+			}
+			else if (command == 3) {
+
+			}
+			else if (command == 4) {
+				break;
+			}
+		}
+	}
 	void inputData() {
 		cout << "Ввод данных\n\n";
 		cout << "Введите Login: ";
@@ -48,23 +62,87 @@ public:
 		cin >> this->password;
 	}
 
-	//settets
-	void setLogin(string login) {
-		this->login = login;
-	}
-	void setRole(string role) {
-		this->role = role;
-	}
-	void setPassword(string password) {
-		this->password = password;
-	}
-	void setId(int id) {
-		this->id = id;
-	}
+	
 };
 class Admin: public User{
-public:
+private:
+	void showPanelAdmin() {
+		while (true)
+		{
+			system("cls");
+			cout << "Главное меню\n\n";
+			cout << "1) Отобразить список\n";
+			cout << "2) Добавить данные\n";
+			cout << "3) Редактировать данные\n";
+			cout << "4) Удалить данные\n";
+			cout << "5) Соритровка данных\n";
+			cout << "6) Войти в пользовательский режим\n";
+			cout << "7) Выйти из аккаунта\n";
+			cout << "Введите номер команды: ";
+			int command;
+			cin >> command;
+			rewind(stdin);
+			cin.clear();
+			switch (command)
+			{
+			case 1: // Отобразить список 
+				cout << "1";
+				break;
+			case 2: // Добавить данные
+				cout << "2";
+				break;
+			case 3: // Редактировать данные
+				cout << "3";
+				break;
+			case 4: // Удаление данных
+				cout << "4";
+				break;
+			case 5: // Соритровка данных
+				cout << "4";
+				break;
+			case 6:
+				showMenu();
+				break;
+			case 7:
+				system("cls");
+				cout << "Вы вышли из системы\n";
+				exit(1);
+			}
+		}
 
+	}
+public:
+	virtual void showMenu() {
+		while (true) {
+			system("cls");
+			cout << "0)Перейти в панель администратора\n";
+			cout << "1)Купить билет\n";
+			cout << "2)Посмотреть свободные места на фильм\n";
+			cout << "3)Мои билеты\n";
+			cout << "4)Выйти из аккаунта\n\n";
+			int command;
+			cout << ">>> ";
+			command = securityInt();
+			if (command == 0) {
+				this->showPanelAdmin();
+			}
+			else if (command == 1) {
+
+			}
+			else if (command == 2) {
+
+			}
+			else if (command == 3) {
+
+			}
+			else if (command == 4) {
+				break;
+			}
+
+		}
+
+
+	}
 };
 class Date {
 	int day, month, year;
@@ -219,31 +297,10 @@ istream& operator>>(istream& in, User& point)
 
 // Авторизация
 void authUser() {
-	cout << "1)Купить билет\n";
-	cout << "2)Посмотреть свободные места на фильм\n";
-	cout << "3)Мои билеты\n";
-	cout << "4)Выйти из аккаунта\n";
+	
 	cout << "Введите номер команды: ";
-	int command;
-	cin >> command;
-	rewind(stdin);
-	cin.clear();
-	switch (command)
-	{
-	case 1:
-
-		break;
-	case 2:
-
-		break;
-	case 3:
-
-		break;
-	case 4:
-		system("cls");
-		cout << "Вы вышли из системы\n";
-		break;
-	}
+	
+	
 
 
 }
@@ -252,7 +309,7 @@ void authUser() {
 void regUser() {
 	User user;
 	user.inputData();
-	cout << "TODO";
+
 }
 
 
