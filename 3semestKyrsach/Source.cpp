@@ -252,7 +252,7 @@ void authUser() {
 void regUser() {
 	User user;
 	user.inputData();
-
+	cout << "TODO";
 }
 
 
