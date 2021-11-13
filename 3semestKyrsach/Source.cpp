@@ -24,7 +24,7 @@ void InputPassword(string& password);
 
 
 
-
+// Кастомные типы данных
 class User {
 private:
 	
@@ -89,7 +89,7 @@ private:
 			cout << "4) Удалить данные\n";
 			cout << "5) Соритровка данных\n";
 			cout << "6) Войти в пользовательский режим\n";
-			cout << "7) Выйти из аккаунта\n";
+			cout << "7) Выйти из cистемы\n";
 			cout << "Введите номер команды: ";
 			int command;
 			cin >> command;
@@ -188,6 +188,20 @@ public:
 	}
 	
 };
+class Tickets : public Films{
+private:
+	string login; 
+	string film;
+	int place; 
+	Date date;
+public:
+	void buyTickets(string* login, string* film, int* place, Date* date) {
+		
+	}
+};
+
+// Доп классы
+template <class T>
 class Security {
 private:
 	int res;
@@ -221,18 +235,6 @@ public:
 		return this->text;
 	}
 };
-
-class Tickets : public Films{
-private:
-	string login; 
-	string film;
-	int place; 
-	Date date;
-public:
-	void buyTickets(string* login, string* film, int* place, Date* date) {
-		
-	}
-};
 template <class T>
 class SmartPointer {
 public:
@@ -248,7 +250,6 @@ public:
 private:
 	T* ptr = nullptr;
 };
-
 class FileAction {
 public:
 	template<class T>
@@ -317,6 +318,12 @@ void authUser();
 // Перегрузка
 ostream& operator<<(ostream& out, const User& user);
 istream& operator>>(istream& in, User& point);
+
+
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 
 // ГЛАВНОЕ МЕНЮ
 int main() {
@@ -459,7 +466,6 @@ void regAccount() {
 
 
 }
-
 
 
 
