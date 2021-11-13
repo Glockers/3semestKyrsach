@@ -1,8 +1,12 @@
-1
+0
 max
 max
 ADMIN
+1
+user
+user
+USER
 2
-user
-user
+admin
+admin
 USER

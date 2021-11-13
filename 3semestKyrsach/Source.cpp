@@ -261,8 +261,8 @@ public:
 		fileRead.close();
 	}
 	template<class T>
-	void create(string nameFile, T obj) {
-		ofstream fileWrite(nameFile, ios::app);
+	void create(string nameFile, T& obj) {
+		fstream fileWrite(nameFile, ios::app);
 		fileWrite << obj;
 		fileWrite.close();
 	}
@@ -284,6 +284,24 @@ public:
 		fileRead.close();
 		return true;
 	}
+	template <class T>
+	void getUnicSeed(string nameFile, T& obj) {
+		int count = 0;
+		T buffer;
+		ifstream fileRead(nameFile);
+		if (!fileRead.is_open()) {
+			obj.id = 0;
+		}
+		else {
+			while (fileRead >> buffer) {
+				count = buffer.id;
+			}
+			count++;
+			obj.id = count;
+		}
+		fileRead.close();
+	}
+
 };
 
 
@@ -291,7 +309,7 @@ public:
 
 
 // Регистрация
-void regUser();
+void regAccount();
 
 // Авторизация
 void authUser();
@@ -318,14 +336,14 @@ int main() {
 		int command;
 		cin >> command;
 		rewind(stdin);
-		cin.clear();
 		switch (command)
 		{
 		case 1:
 			authUser();
 			break;
 		case 2:
-			regUser();
+			regAccount();
+			system("pause");
 			break;
 		case 3:
 			system("cls");
@@ -342,7 +360,7 @@ int main() {
 
 ostream& operator<<(ostream& out, const User& user)
 {
-	out << user.id << "\n" << user.login << "\n" << user.password << "\n" << user.role;
+	out << user.id << "\n" << user.login << "\n" << user.password << "\n" << user.role<<endl;
 	return out;
 }
 istream& operator>>(istream& in, User& point)
@@ -378,7 +396,6 @@ void authUser() {
 		// Проверка
 		file.findOne(fileUser, &User::login, userLogin->login, *user);
 
-		cout << *user;
 		if (user->password == "" || user->password != userLogin->password) {
 			countTry--;
 			cout << "Вы ввели неверный логин или пароль! У вас осталось " << countTry << " попытки." << endl;
@@ -403,17 +420,43 @@ void authUser() {
 				Admin admin;
 				admin.showMenu();
 			}
-
+			cout << "Вы вышли из аккаунта\n";
 			system("pause");
+			break;
 		}
 
 	}
 }
 
 // Регистрация
-void regUser() {
-	User user;
-	user.inputData();
+void regAccount() {
+	FileAction file;
+	SmartPointer<User> user = new User;
+	SmartPointer<User> userExist = new User;
+
+	cout << "РЕГИСТРАЦИЯ\n\n";
+	cout << "Введите ваш будующий логин: ";
+	cin >> user->login;
+	rewind(stdin);
+	cout << "Введите надежный пароль: ";
+	InputPassword(user->password);
+
+	file.findOne(fileUser, &User::login, user->login, *userExist);
+	if (userExist->login != user->login && user->password != userExist->password) {
+		file.getUnicSeed(fileUser, *user);
+		if (user->id == 0) {
+			user->role = "ADMIN";
+		}
+		else {
+			user->role = "USER";
+		}
+		cout << *user;
+		file.create(fileUser, *user);
+	}
+	else {
+		cout << "Аккаунт с таким логином уже существует!\n";
+	}
+
 
 }
 
