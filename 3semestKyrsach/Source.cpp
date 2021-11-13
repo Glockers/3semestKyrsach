@@ -13,6 +13,9 @@
 #pragma warning(disable : 4996)
 using namespace std;
 
+
+#define fileUser "Users.txt"
+
 // Проверки
 int securityInt();
 string securityString();
@@ -32,14 +35,11 @@ public:
 
 	virtual void showMenu() {
 		while (true) {
-			cout << "1)Купить билет\n";
-			cout << "2)Посмотреть свободные места на фильм\n";
-			cout << "3)Мои билеты\n";
-			cout << "4)Выйти из аккаунта\n";
+			system("cls");
+			cout << "_____________________ГЛАВНОЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ_____________\n\n" << endl;
+			this->showPunktMenu();
 			int command;
-			cout << ">>> ";
 			command = securityInt();
-
 			if (command == 1) {
 
 			}
@@ -54,6 +54,16 @@ public:
 			}
 		}
 	}
+
+	void showPunktMenu() {
+		cout << "1)Купить билет\n";
+		cout << "2)Посмотреть свободные места на фильм\n";
+		cout << "3)Мои билеты\n";
+		cout << "4)Выйти из аккаунта\n";
+		cout << ">>> ";
+
+	}
+	
 	void inputData() {
 		cout << "Ввод данных\n\n";
 		cout << "Введите Login: ";
@@ -70,6 +80,8 @@ private:
 		while (true)
 		{
 			system("cls");
+			cout << "_____________________ГЛАВНОЕ МЕНЮ АДМИНИСТРАТОРА_____________\n\n" << endl;
+
 			cout << "Главное меню\n\n";
 			cout << "1) Отобразить список\n";
 			cout << "2) Добавить данные\n";
@@ -82,7 +94,6 @@ private:
 			int command;
 			cin >> command;
 			rewind(stdin);
-			cin.clear();
 			switch (command)
 			{
 			case 1: // Отобразить список 
@@ -98,7 +109,7 @@ private:
 				cout << "4";
 				break;
 			case 5: // Соритровка данных
-				cout << "4";
+				cout << "5";
 				break;
 			case 6:
 				showMenu();
@@ -115,13 +126,10 @@ public:
 	virtual void showMenu() {
 		while (true) {
 			system("cls");
+			cout << "_____________________ГЛАВНОЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ_____________\n\n" << endl;
 			cout << "0)Перейти в панель администратора\n";
-			cout << "1)Купить билет\n";
-			cout << "2)Посмотреть свободные места на фильм\n";
-			cout << "3)Мои билеты\n";
-			cout << "4)Выйти из аккаунта\n\n";
+			User::showPunktMenu();
 			int command;
-			cout << ">>> ";
 			command = securityInt();
 			if (command == 0) {
 				this->showPanelAdmin();
@@ -225,7 +233,58 @@ public:
 		
 	}
 };
+template <class T>
+class SmartPointer {
+public:
+	SmartPointer(T* ptr) {
+		this->ptr = ptr;
+	}
+	~SmartPointer() {
+		delete ptr;
+	}
 
+	T& operator*() const { return *ptr; }
+	T* operator->() const { return ptr; }
+private:
+	T* ptr = nullptr;
+};
+
+class FileAction {
+public:
+	template<class T>
+	void findAll(string nameFile, vector<T>& new_operations) {
+		ifstream fileRead(nameFile);
+		T obj;
+		while (fileRead >> obj) {
+			new_operations.push_back(obj);
+		}
+		fileRead.close();
+	}
+	template<class T>
+	void create(string nameFile, T obj) {
+		ofstream fileWrite(nameFile, ios::app);
+		fileWrite << obj;
+		fileWrite.close();
+	}
+	template<class T, typename T2, class T3>
+	bool findOne(string nameFile, T2 T::* method, T3 value, T& saveObj) {
+		ifstream fileRead(nameFile);
+		T obj;
+		if (!fileRead.is_open()) {
+			cout << "Ошибка открытия файла\n";
+			fileRead.close();
+			return false;
+		}
+		while (fileRead >> obj) {
+			if (obj.*method == value) {
+				saveObj = obj;
+				break;
+			}
+		}
+		fileRead.close();
+		return true;
+	}
+};
 
 
 
@@ -297,12 +356,58 @@ istream& operator>>(istream& in, User& point)
 
 // Авторизация
 void authUser() {
-	
-	cout << "Введите номер команды: ";
-	
-	
+
+	int countTry = 3;
+
+	while (countTry > 0) {
+		SmartPointer<User> userLogin = new User;
+		SmartPointer<User> user = new User;
+		FileAction file;
 
 
+		system("cls");
+		cout << "Авторизация\n\n" << endl;
+		rewind(stdin);
+		cout << "Введите Login: ";
+		userLogin->login = securityString();
+		rewind(stdin);
+		cout << "Введите Password: ";
+		InputPassword(userLogin->password);
+
+
+		// Проверка
+		file.findOne(fileUser, &User::login, userLogin->login, *user);
+
+		cout << *user;
+		if (user->password == "" || user->password != userLogin->password) {
+			countTry--;
+			cout << "Вы ввели неверный логин или пароль! У вас осталось " << countTry << " попытки." << endl;
+			if (countTry == 0) {
+				cout << "Вы исчерпали лимит попыток :(" << endl;
+				cout << "Вы были заблокированны на 5 секунд\n" << endl;
+				Sleep(5000);
+			}
+			system("pause");
+		}
+		else if (userLogin->password == user->password) {
+			cout << "Вы вошли как " << user->role << endl;
+			system("pause");
+			system("cls");
+
+			if (user->role == "USER") {
+			
+				User user;
+				user.showMenu();
+			}
+			else if (user->role == "ADMIN") {
+				Admin admin;
+				admin.showMenu();
+			}
+
+			system("pause");
+		}
+
+	}
 }
 
 // Регистрация
