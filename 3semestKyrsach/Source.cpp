@@ -15,6 +15,8 @@ using namespace std;
 
 
 #define fileUser "Users.txt"
+#define fileFilms "FilmList.txt"
+#define fileTickets "Tickets.txt"
 
 // Проверки
 int securityInt();
@@ -188,17 +190,6 @@ public:
 	}
 	
 };
-class Tickets : public Films{
-private:
-	string login; 
-	string film;
-	int place; 
-	Date date;
-public:
-	void buyTickets(string* login, string* film, int* place, Date* date) {
-		
-	}
-};
 
 
 struct SessionHandler {
@@ -308,12 +299,39 @@ public:
 		}
 		fileRead.close();
 	}
-
+	bool is_file_exist(const string& fileName)
+	{
+		ifstream infile(fileName);
+		bool res = infile.good();
+		cout << res << endl;
+		infile.close();
+		return res;
+	};
 };
 
 
+class Film {
+public:
+	string nameFilm;
+	int coast;
+	int place;
+	void addFilm();
+};
+class Place {
+public:
+	int place;
+	string login;
+	bool is_Free_Place;
+};
+class Tickets : public Film {
+public:
+	string login;
+	string nameFilm;
+	string place;
+	int id;
 
-
+	void buyTicket();
+};
 
 // Регистрация
 void regAccount();
@@ -325,6 +343,14 @@ void authUser();
 ostream& operator<<(ostream& out, const User& user);
 istream& operator>>(istream& in, User& point);
 
+ostream& operator << (ostream& os, const Film& p);
+istream& operator >> (istream& in, Film& p);
+
+ostream& operator << (ostream& os, const Place& p);
+istream& operator >> (istream& in, Place& p);
+
+ostream& operator << (ostream& os, const Tickets& p);
+istream& operator >> (istream& in, Tickets& p);
 
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -383,6 +409,33 @@ istream& operator>>(istream& in, User& point)
 	in >> point.password;
 	in >> point.role;
 	return in;
+}
+
+ostream& operator << (ostream& os, const Film& p)
+{
+	return os << p.nameFilm << "\n" << p.place << "\n" << p.coast << endl;
+}
+istream& operator >> (istream& in, Film& p)
+{
+	return in >> p.nameFilm >> p.place >> p.coast;
+}
+
+ostream& operator << (ostream& os, const Place& p)
+{
+	return os << p.place << "\n" << p.is_Free_Place << "\n" << p.login << endl;
+}
+istream& operator >> (istream& in, Place& p)
+{
+	return in >> p.place >> p.is_Free_Place >> p.login;
+}
+
+ostream& operator << (ostream& os, const Tickets& p)
+{
+	return os << p.id << "\n" << p.login << "\n" << p.nameFilm << "\n" << p.place << endl;
+}
+istream& operator >> (istream& in, Tickets& p)
+{
+	return in >> p.id >> p.login >> p.nameFilm >> p.place;
 }
 
 // Авторизация
@@ -480,6 +533,112 @@ void regAccount() {
 
 }
 
+// FILMS
+void Film::addFilm() {
+	cout << "Введите название фильма: ";
+	cin >> nameFilm;
+	rewind(stdin);
+
+	cout << "Введите количество мест: ";
+	place = securityInt();
+
+	cout << "Введите стоимость билета: ";
+	coast = securityInt();
+
+	FileAction file;
+	string nameFile = nameFilm + ".txt";
+	if (file.is_file_exist(nameFile)) {
+		cout << "Такой фильм уже существует!\n";
+		return;
+	};
+
+	ofstream inFile(nameFile);
+	for (int i = 1; i <= place; i++) {
+		inFile << i << "\n" << false << "\n" << "NONE\n";
+	}
+	inFile.close();
+
+	file.create(fileFilms, *this);
+	cout << "Фильм успешно добавлен\n";
+
+};
+
+// Tickets
+void Tickets::buyTicket() {
+	FileAction file;
+	Tickets ticket;
+	Film film;
+
+	system("cls");
+	cout << "Введите название фильма:";
+	cin >> this->nameFilm;
+	string name = this->nameFilm + ".txt";
+	rewind(stdin);
+
+	Film* isFilm = new Film;
+	if (!file.findOne(fileFilms, &Film::nameFilm, nameFilm, *isFilm) || !file.is_file_exist(name)) {
+		cerr << "Такого фильма нет!\n";
+		delete isFilm;
+		return;
+	}
+	delete isFilm;
+
+
+	vector<Place> places;
+	file.findAll(name, places);
+	auto iter = places.cbegin(); // указатель на первый элемент
+	int count_free_place = 0;
+	cout << "Свободные места: ";
+	for (int i = 0; i < places.size(); i++)
+	{
+		if (!places[i].is_Free_Place) {
+			count_free_place++;
+			cout << places[i].place << " | ";
+		}
+
+	};
+	system("pause");
+
+	if (count_free_place == 0) {
+		cout << "Свободных мест нет!\n";
+		return;
+	}
+
+	this->login = session.login;
+	int choosePlace;
+	while (true) {
+		system("cls");
+		cout << "Выберите свободное место: ";
+		choosePlace = securityInt() - 1;
+
+		if (choosePlace < 0 || choosePlace >(places.size()) - 1) {
+			cout << "Такого места нет!\n";
+
+		}
+		else if (places[choosePlace].is_Free_Place) {
+			cout << "Это место занятно!!!";
+		}
+		else {
+			places[choosePlace].is_Free_Place = true;
+			places[choosePlace].login = this->login;
+
+
+			ofstream fileInpute(name);
+
+			for (int i = 0; i < places.size(); i++) {
+				fileInpute << places[i];
+			}
+			fileInpute.close();
+
+			cout << "Вы купили билет!!!\n";
+			system("pause");
+			break;
+		}
+		system("pause");
+	}
+
+};
+
 
 // Проверки
 int securityInt() {
@@ -544,3 +703,5 @@ void InputPassword(string& password)
 	else
 		cout << "Введите пароль!\n" << endl;;
 }
+
+
