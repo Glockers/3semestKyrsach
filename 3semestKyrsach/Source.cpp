@@ -200,6 +200,12 @@ public:
 	}
 };
 
+
+struct SessionHandler {
+	string login;
+	string password;
+	string role;
+}session;
 // Доп классы
 template <class T>
 class Security {
@@ -415,6 +421,10 @@ void authUser() {
 		}
 		else if (userLogin->password == user->password) {
 			cout << "Вы вошли как " << user->role << endl;
+			session.login = user->login;
+			session.password = user->password;
+			session.role = user->role;
+
 			system("pause");
 			system("cls");
 
@@ -427,6 +437,9 @@ void authUser() {
 				Admin admin;
 				admin.showMenu();
 			}
+			session.login = "";
+			session.password = "";
+			session.role = "";
 			cout << "Вы вышли из аккаунта\n";
 			system("pause");
 			break;
@@ -466,8 +479,6 @@ void regAccount() {
 
 
 }
-
-
 
 
 // Проверки
