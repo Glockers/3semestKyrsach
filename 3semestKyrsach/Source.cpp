@@ -5,6 +5,7 @@
 #include <string>
 #include <stdio.h>
 #include <vector>
+#include <iomanip>
 
 
 // Отключение ошибок
@@ -18,22 +19,42 @@ using namespace std;
 #define fileFilms "FilmList.txt"
 #define fileTickets "Tickets.txt"
 
-// Проверки
-int securityInt();
-string securityString();
-void InputPassword(string& password);
 
 
 
+
+
+// Меню
+static class AdminMenu
+{
+public:
+	static void ShowMenuAdd();
+	static void ShowMenuDelete();
+	static void showAboutFilm();
+	static void showAllFilm();
+	static void showAllUser();
+	static void ShowMenuData();
+};
+// Защита информации
+static class Security {
+private:
+	int res;
+	string text;
+public:
+	// Проверки
+	static void InputPassword(string& password);
+	static string securityString();
+	static int securityInt();
+};
 
 // Кастомные типы данных
 class User {
 private:
-	
+
 public:
 	string login, role, password;
 	int id;
-	
+
 
 	virtual void showMenu() {
 		while (true) {
@@ -41,7 +62,7 @@ public:
 			cout << "_____________________ГЛАВНОЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ_____________\n\n" << endl;
 			this->showPunktMenu();
 			int command;
-			command = securityInt();
+			command = Security::securityInt();
 			if (command == 1) {
 
 			}
@@ -65,7 +86,7 @@ public:
 		cout << ">>> ";
 
 	}
-	
+
 	void inputData() {
 		cout << "Ввод данных\n\n";
 		cout << "Введите Login: ";
@@ -74,9 +95,9 @@ public:
 		cin >> this->password;
 	}
 
-	
+
 };
-class Admin: public User{
+class Admin : public User {
 private:
 	void showPanelAdmin() {
 		while (true)
@@ -93,22 +114,20 @@ private:
 			cout << "6) Войти в пользовательский режим\n";
 			cout << "7) Выйти из cистемы\n";
 			cout << "Введите номер команды: ";
-			int command;
-			cin >> command;
-			rewind(stdin);
+			int command = Security::securityInt();
 			switch (command)
 			{
 			case 1: // Отобразить список 
-				cout << "1";
+				AdminMenu::ShowMenuData();
 				break;
 			case 2: // Добавить данные
-				cout << "2";
+				AdminMenu::ShowMenuAdd();
 				break;
 			case 3: // Редактировать данные
 				cout << "3";
 				break;
 			case 4: // Удаление данных
-				cout << "4";
+				AdminMenu::ShowMenuDelete();
 				break;
 			case 5: // Соритровка данных
 				cout << "5";
@@ -132,7 +151,7 @@ public:
 			cout << "0)Перейти в панель администратора\n";
 			User::showPunktMenu();
 			int command;
-			command = securityInt();
+			command = Security::securityInt();
 			if (command == 0) {
 				this->showPanelAdmin();
 			}
@@ -157,15 +176,15 @@ public:
 class Date {
 	int day, month, year;
 public:
-	
+
 	void setDate() {
 		while (true) {
 			cout << "Введите день: ";
-			day = securityInt();
+			day = Security::securityInt();
 			cout << "Введите месяц: ";
-			month = securityInt();
+			month = Security::securityInt();
 			cout << "Введите год: ";
-			year = securityInt();
+			year = Security::securityInt();
 
 
 			if ((day >= 0 && day <= 31) && (month >= 0 && month <= 12) && (year >= 1900 && year <= 2021)) {
@@ -186,52 +205,19 @@ private:
 	int places, id;
 public:
 	void createFilm() {
-		
+
 	}
-	
 };
 
-
+// Сессия
 struct SessionHandler {
 	string login;
 	string password;
 	string role;
 }session;
-// Доп классы
-template <class T>
-class Security {
-private:
-	int res;
-	string text;
-public:
-	int securityInt() {
 
-		while (!(cin >> this->res) || ((getchar()) != '\n')) {
-			rewind(stdin);
-			cin.clear();
-			cout << "Введите другое\n";
-		}
-		return this->res;
-	}
-	string securityString() {
-		while (true) {
-			int flag = 0;
-			cin >> this->text;
-			rewind(stdin);
-			for (int i = 0; i < this->text.length(); i++) {
-				if (isdigit(this->text[i])) {
-					flag = 1;
-					cin.clear();
-					cout << "Строка не должна содержать символы!\n";
-					cout << "Введите еще раз: ";
-					break;
-				}
-			}
-			if (flag == 0) break;
-		}
-		return this->text;
-	}
-};
+
+// Умные указатели
 template <class T>
 class SmartPointer {
 public:
@@ -247,6 +233,8 @@ public:
 private:
 	T* ptr = nullptr;
 };
+
+// Работа с файлами
 class FileAction {
 public:
 	template<class T>
@@ -308,8 +296,10 @@ public:
 		return res;
 	};
 };
+FileAction file;
 
 
+// ТЗ классы
 class Film {
 public:
 	string nameFilm;
@@ -363,7 +353,7 @@ int main() {
 	SetConsoleOutputCP(1251);
 	SetConsoleCP(1251);
 	system("cls");
-	
+
 
 	while (true) {
 		system("cls");
@@ -399,7 +389,7 @@ int main() {
 
 ostream& operator<<(ostream& out, const User& user)
 {
-	out << user.id << "\n" << user.login << "\n" << user.password << "\n" << user.role<<endl;
+	out << user.id << "\n" << user.login << "\n" << user.password << "\n" << user.role << endl;
 	return out;
 }
 istream& operator>>(istream& in, User& point)
@@ -453,10 +443,10 @@ void authUser() {
 		cout << "Авторизация\n\n" << endl;
 		rewind(stdin);
 		cout << "Введите Login: ";
-		userLogin->login = securityString();
+		userLogin->login = Security::securityString();
 		rewind(stdin);
 		cout << "Введите Password: ";
-		InputPassword(userLogin->password);
+		Security::InputPassword(userLogin->password);
 
 
 		// Проверка
@@ -482,7 +472,7 @@ void authUser() {
 			system("cls");
 
 			if (user->role == "USER") {
-			
+
 				User user;
 				user.showMenu();
 			}
@@ -512,7 +502,7 @@ void regAccount() {
 	cin >> user->login;
 	rewind(stdin);
 	cout << "Введите надежный пароль: ";
-	InputPassword(user->password);
+	Security::InputPassword(user->password);
 
 	file.findOne(fileUser, &User::login, user->login, *userExist);
 	if (userExist->login != user->login && user->password != userExist->password) {
@@ -540,10 +530,10 @@ void Film::addFilm() {
 	rewind(stdin);
 
 	cout << "Введите количество мест: ";
-	place = securityInt();
+	place = Security::securityInt();
 
 	cout << "Введите стоимость билета: ";
-	coast = securityInt();
+	coast = Security::securityInt();
 
 	FileAction file;
 	string nameFile = nameFilm + ".txt";
@@ -609,7 +599,7 @@ void Tickets::buyTicket() {
 	while (true) {
 		system("cls");
 		cout << "Выберите свободное место: ";
-		choosePlace = securityInt() - 1;
+		choosePlace = Security::securityInt() - 1;
 
 		if (choosePlace < 0 || choosePlace >(places.size()) - 1) {
 			cout << "Такого места нет!\n";
@@ -639,9 +629,187 @@ void Tickets::buyTicket() {
 
 };
 
+// AdminMenu
+void AdminMenu::ShowMenuData() {
 
-// Проверки
-int securityInt() {
+
+	while (true) {
+		system("cls");
+		cout << "Вывод данных\n\n";
+		cout << "1) Отоброзить список пользователей\n";
+		cout << "2) Отоброзить список фильмов\n";
+		cout << "3) Отоброзить список всех билетов\n";
+		cout << "4) Отоброзить список мест на фильм\n";
+		cout << "5) Вернуться назад\n\n";
+
+		cout << ">>> ";
+		int command = Security::securityInt();
+		if (command == 1) {
+			AdminMenu::showAllUser();
+			system("pause");
+		}
+		else if (command == 2) {
+			AdminMenu::showAllFilm();
+			system("pause");
+		}
+		else if (command == 3) {
+
+		}
+		else if (command == 4) {
+			system("cls");
+			AdminMenu::showAboutFilm();
+			system("pause");
+		}
+		else if (command == 5) {
+			break;
+		}
+	}
+
+}
+void AdminMenu::showAllUser() {
+	vector<User> Users; //Вектор строки, используемый для указания статуса пользователя
+
+	file.findAll(fileUser, Users);
+	cout << "Список всех пользователей:" << endl;
+	cout << "-------------------------------------------------------------------------" << endl;
+	cout << "|       Логин         |            Пароль                  |   Статус   |" << endl;
+	cout << "-------------------------------------------------------------------------" << endl;
+
+	for (size_t i = 0; i < Users.size(); i++) {
+		cout << "|" << std::setw(20) << Users[i].login << " |" << setw(35) << Users[i].password
+			<< " |" << setw(11) << Users[i].role << " |" << endl;
+	}
+	cout << "-------------------------------------------------------------------------" << endl;
+	cout << endl;
+
+}
+void AdminMenu::showAllFilm() {
+	vector<Film> Films; //Вектор строки, используемый для указания статуса пользователя
+
+	file.findAll(fileFilms, Films);
+	cout << "Список всех фильмов:" << endl;
+	cout << "--------------------------------------------------------------------------------" << endl;
+	cout << "|       Название фильма         |      Всего мест       |   Стоимость билета   |" << endl;
+	cout << "--------------------------------------------------------------------------------" << endl;
+
+	for (size_t i = 0; i < Films.size(); i++) {
+		cout << "|" << std::setw(31) << Films[i].nameFilm << "|" << setw(23) << Films[i].place
+			<< "|" << setw(22) << Films[i].coast << "|" << endl;
+	}
+	cout << "--------------------------------------------------------------------------------" << endl;
+
+	cout << endl;
+	Films.clear();
+}
+void AdminMenu::showAboutFilm() {
+	vector<Place> Place;
+	cout << "Введите название фильма: ";
+	string nameFilm;
+	cin >> nameFilm;
+	rewind(stdin);
+	cout << "Информация о фильме: <" << nameFilm << ">" << endl;
+	int countFree = 0;
+	int countNotFree = 0;
+
+	nameFilm += ".txt";
+	if (!file.is_file_exist(nameFilm)) {
+		cout << "Такого фильма нет!\n";
+		return;
+	}
+
+
+	file.findAll(nameFilm, Place);
+
+	cout << "-------------------------------------------------------------------------------------" << endl;
+	cout << "|       Номер места         |      Статус места       |       Логин покупателя      |" << endl;
+	cout << "-------------------------------------------------------------------------------------" << endl;
+
+	for (size_t i = 0; i < Place.size(); i++) {
+		string status;
+		string login;
+		if (Place[i].is_Free_Place) {
+			status = "Занято";
+			countNotFree++;
+		}
+		else {
+			status = "Свободно";
+			countFree++;
+		}
+		if (Place[i].login == "NONE") {
+			login = "Нет";
+		}
+		else {
+			login = Place[i].login;
+		}
+		cout << "|" << std::setw(26) << Place[i].place << " |" << setw(24) << status
+			<< " |" << setw(28) << login << " |" << endl;
+	}
+	cout << "-------------------------------------------------------------------------------------" << endl;
+	cout << endl;
+
+	cout << "Свободно мест: " << countFree << endl;
+	cout << "Занято мест: " << countNotFree << endl;
+
+	Place.clear();
+}
+//Four command
+void AdminMenu::ShowMenuDelete() {
+	while (true) {
+		system("cls");
+		cout << "Удаление данных\n\n";
+		cout << "1) Удалить пользователя\n";
+		cout << "2) Удалить фильм\n";
+		cout << "3) Вернуться назад\n\n";
+
+		cout << ">>> ";
+		int command = Security::securityInt();
+		if (command == 1) {
+
+			system("pause");
+		}
+		else if (command == 2) {
+
+			system("pause");
+		}
+		else if (command == 3) {
+			break;
+		}
+
+	}
+}
+//Two command
+void AdminMenu::ShowMenuAdd() {
+	while (true) {
+		system("cls");
+
+
+
+		cout << "Добавление данных\n\n";
+		cout << "1) Создать пользователя\n";
+		cout << "2) Добавить новый фильм\n";
+		cout << "3) Вернуться назад\n\n";
+
+		cout << ">>> ";
+		int command = Security::securityInt();
+		if (command == 1) {
+
+			system("pause");
+		}
+		else if (command == 2) {
+			Film film;
+			film.addFilm();
+			system("pause");
+		}
+		else if (command == 3) {
+			break;
+		}
+
+	}
+}
+
+
+// Security
+int Security::securityInt() {
 	int res;
 	while (!(cin >> res) || ((getchar()) != '\n')) {
 		rewind(stdin);
@@ -650,7 +818,7 @@ int securityInt() {
 	}
 	return res;
 }
-string securityString() {
+string Security::securityString() {
 	string text;
 	while (true) {
 		int flag = 0;
@@ -669,7 +837,7 @@ string securityString() {
 	}
 	return text;
 }
-void InputPassword(string& password)
+void Security::InputPassword(string& password)
 {
 	int ch = 0;
 	while (true)
@@ -703,5 +871,4 @@ void InputPassword(string& password)
 	else
 		cout << "Введите пароль!\n" << endl;;
 }
-
 
