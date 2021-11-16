@@ -37,7 +37,7 @@ public:
 	static void ShowMenuData();
 	static void deleteUser();
 	static void deleteFilm();
-
+	static void createUser();
 };
 // Защита информации
 class Security {
@@ -288,19 +288,21 @@ public:
 	bool findOne(string nameFile, T2 T::* method, T3 value, T& saveObj) {
 		ifstream fileRead(nameFile);
 		T obj;
+		bool resultFind = false;
 		if (!fileRead.is_open()) {
 			cout << "Ошибка открытия файла\n";
 			fileRead.close();
-			return false;
+			return resultFind;
 		}
 		while (fileRead >> obj) {
 			if (obj.*method == value) {
 				saveObj = obj;
+				resultFind = true;
 				break;
 			}
 		}
 		fileRead.close();
-		return true;
+		return resultFind;
 	}
 	template <class T>
 	void getUnicSeed(string nameFile, T& obj) {
@@ -394,9 +396,7 @@ int main() {
 		cout << "2) Регистрация\n";
 		cout << "3) Выход из системы\n";
 		cout << "Введите номер команды: ";
-		int command;
-		cin >> command;
-		rewind(stdin);
+		int command = Security::securityInt();
 		switch (command)
 		{
 		case 1:
@@ -543,8 +543,29 @@ void regAccount() {
 	cout << "Введите ваш будующий логин: ";
 	cin >> user->login;
 	rewind(stdin);
-	cout << "Введите надежный пароль: ";
-	Security::InputPassword(user->password);
+	while (true) {
+		system("cls");
+		cout << "Введите надежный пароль: ";
+		Security::InputPassword(user->password);
+		if (user->password.size() < 6) {
+			cout << "Слишком короткий пароль. Введите еще раз\n";
+			user->password = "";
+		}
+		else if (user->password.size() >= 6) {
+			string password;
+			cout << "Повторите пароль: ";
+			Security::InputPassword(password);
+			if (user->password == password) {
+				break;
+			}
+			else {
+				cout << "Пароли не совпадают\n";
+				user->password = "";
+			}
+		}
+		system("pause");
+	}
+
 
 	file.findOne(fileUser, &User::login, user->login, *userExist);
 	if (userExist->login != user->login && user->password != userExist->password) {
@@ -555,8 +576,10 @@ void regAccount() {
 		else {
 			user->role = "USER";
 		}
-		
+
 		file.create(fileUser, *user);
+		system("cls");
+		cout << "Вы зарегистрировались. Далее для продолжения работы войдите в личный кабинет.\n";
 	}
 	else {
 		cout << "Аккаунт с таким логином уже существует!\n";
@@ -713,15 +736,19 @@ void AdminMenu::showAllUser() {
 
 	file.findAll(fileUser, Users);
 	cout << "Список всех пользователей:" << endl;
-	cout << "-------------------------------------------------------------------------" << endl;
-	cout << "|       Логин         |            Пароль                  |   Статус   |" << endl;
-	cout << "-------------------------------------------------------------------------" << endl;
+	cout << "----------------------------------------------------------------------------------" << endl;
+	cout << "|   ID   |       Логин         |            Пароль                  |   Статус   |" << endl;
+	cout << "----------------------------------------------------------------------------------" << endl;
 
 	for (size_t i = 0; i < Users.size(); i++) {
-		cout << "|" << std::setw(20) << Users[i].login << " |" << setw(35) << Users[i].password
+
+		cout << "|" << setw(7) << Users[i].id << " |" << setw(20) << Users[i].login << " |" << setw(35) << Users[i].password
 			<< " |" << setw(11) << Users[i].role << " |" << endl;
+
+
 	}
-	cout << "-------------------------------------------------------------------------" << endl;
+	cout << "--------------------------------------------------------------------------------- " << endl;
+
 	cout << endl;
 
 }
@@ -829,7 +856,7 @@ void AdminMenu::deleteUser() {
 	vector<User> Users;
 	string loginUser;
 	cout << "Удаление пользователя\n\n";
-	
+
 	cout << "Введите логин пользователя, котороого хотите удалить: ";
 	cin >> loginUser;
 	rewind(stdin);
@@ -859,7 +886,7 @@ void AdminMenu::deleteUser() {
 		}
 	}
 	if (!is_Find_User) {
-		cout << "Пользователь "<< loginUser<< " не был найден.\n";
+		cout << "Пользователь " << loginUser << " не был найден.\n";
 	}
 }
 void AdminMenu::deleteFilm() {
@@ -874,7 +901,7 @@ void AdminMenu::deleteFilm() {
 
 	bool is_Find_Film = false;
 	for (size_t i = 0; i < Films.size(); i++) {
-		
+
 		if (Films[i].nameFilm == filmName) {
 			Films.erase(Films.begin() + i);
 			is_Find_Film = true;
@@ -891,7 +918,7 @@ void AdminMenu::deleteFilm() {
 			else {
 				cout << "Фильм был успешно удален, но возникла проблема с удалением файла!\n";
 			}
-			
+
 			break;
 		}
 	}
@@ -914,7 +941,7 @@ void AdminMenu::ShowMenuAdd() {
 		cout << ">>> ";
 		int command = Security::securityInt();
 		if (command == 1) {
-
+			createUser();
 			system("pause");
 		}
 		else if (command == 2) {
@@ -928,7 +955,53 @@ void AdminMenu::ShowMenuAdd() {
 
 	}
 }
+void AdminMenu::createUser() {
+	system("cls");
 
+	cout << "Создание новового пользователя\n\n";
+	User user;
+	cout << "Введите логин пользователя: ";
+	cin >> user.login;
+	rewind(stdin);
+	bool resultFind = file.findOne(fileUser, &User::login, user.login, user);
+	if (resultFind) {
+		cout << "Такой логин есть, придумайте другой.\n";
+		return;
+	}
+	cout << "Введите пароль пользователя: ";
+	Security::InputPassword(user.password);
+
+	cout << "Выберите роль пользователя: \n";
+	cout << "1) Пользователь\n";
+	cout << "2) Работник\n";
+	cout << "3) Администратор\n";
+	cout << "4) Отменить создание пользователя\n";
+	while (true) {
+		int chooseRole = Security::securityInt();
+		if (chooseRole == 1) {
+			user.role = "USER";
+			break;
+		}
+		else if (chooseRole == 2) {
+			user.role = "WORKER";
+			break;
+		}
+		else if (chooseRole == 3) {
+			user.role = "ADMIN";
+			break;
+		}
+		else if (chooseRole == 4) {
+			return;
+		}
+		else {
+			cout << "Такого варианта нет!\n";
+		}
+	}
+	file.getUnicSeed(fileUser, user);
+	file.create(fileUser, user);
+	system("cls");
+	cout << "Вы создали нового пользователя\n";
+}
 
 // Security
 int Security::securityInt() {
