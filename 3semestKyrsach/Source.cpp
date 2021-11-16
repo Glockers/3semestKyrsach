@@ -1001,6 +1001,7 @@ void AdminMenu::createUser() {
 	file.create(fileUser, user);
 	system("cls");
 	cout << "Вы создали нового пользователя\n";
+
 }
 
 // Security
