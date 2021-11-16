@@ -47,16 +47,23 @@ public:
 	static int securityInt();
 };
 
-// Кастомные типы данных
-class User {
-private:
+
+// Интерфейс
+class IShowMainMenu
+{
+public:
+	virtual void showMenu() = 0;
+	virtual void showPunktMenu() = 0;
+};
+
+// Типы пользователей
+class User : public IShowMainMenu {
 
 public:
 	string login, role, password;
 	int id;
 
-
-	virtual void showMenu() {
+	void showMenu() {
 		while (true) {
 			system("cls");
 			cout << "_____________________ГЛАВНОЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ_____________\n\n" << endl;
@@ -87,17 +94,45 @@ public:
 
 	}
 
-	void inputData() {
-		cout << "Ввод данных\n\n";
-		cout << "Введите Login: ";
-		cin >> this->login;
-		cout << "Введите Password: ";
-		cin >> this->password;
+};
+class Worker : public IShowMainMenu, public User {
+private:
+	void showPanelWorker() {
+
+	}
+public:
+	void showMenu() {
+		while (true) {
+			system("cls");
+			cout << "_____________________ГЛАВНОЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ / РАБОТНИКА_____________\n\n" << endl;
+			this->showPunktMenu();
+			int command;
+			command = Security::securityInt();
+			if (command == 0) {
+				this->showPanelWorker();
+			}
+			else if (command == 1) {
+
+			}
+			else if (command == 2) {
+
+			}
+			else if (command == 3) {
+
+			}
+			else if (command == 4) {
+				break;
+			}
+
+		}
 	}
 
-
+	void showPunktMenu() {
+		cout << "0)Панель работника\n";
+		User::showPunktMenu();
+	}
 };
-class Admin : public User {
+class Admin : public IShowMainMenu, public User {
 private:
 	void showPanelAdmin() {
 		while (true)
@@ -144,12 +179,11 @@ private:
 
 	}
 public:
-	virtual void showMenu() {
+	void showMenu() {
 		while (true) {
 			system("cls");
-			cout << "_____________________ГЛАВНОЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ_____________\n\n" << endl;
-			cout << "0)Перейти в панель администратора\n";
-			User::showPunktMenu();
+			cout << "_____________________ГЛАВНОЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ / АДМИНА_____________\n\n" << endl;
+			this->showPunktMenu();
 			int command;
 			command = Security::securityInt();
 			if (command == 0) {
@@ -169,10 +203,14 @@ public:
 			}
 
 		}
-
-
+	}
+	void showPunktMenu() {
+		cout << "0)Перейти в панель администратора\n";
+		User::showPunktMenu();
 	}
 };
+
+// Дата
 class Date {
 	int day, month, year;
 public:
@@ -199,15 +237,6 @@ public:
 		cout << this->day << "." << this->month << "." << this->year << endl;
 	}
 };
-class Films {
-private:
-	string nameFilm;
-	int places, id;
-public:
-	void createFilm() {
-
-	}
-};
 
 // Сессия
 struct SessionHandler {
@@ -215,7 +244,6 @@ struct SessionHandler {
 	string password;
 	string role;
 }session;
-
 
 // Умные указатели
 template <class T>
@@ -436,7 +464,15 @@ void authUser() {
 	while (countTry > 0) {
 		SmartPointer<User> userLogin = new User;
 		SmartPointer<User> user = new User;
-		FileAction file;
+		Worker worker;
+		Admin admin;
+		User userr;
+
+
+		IShowMainMenu* ptrUser[3];
+		ptrUser[0] = &userr;
+		ptrUser[1] = &worker;
+		ptrUser[2] = &admin;
 
 
 		system("cls");
@@ -472,13 +508,14 @@ void authUser() {
 			system("cls");
 
 			if (user->role == "USER") {
+				ptrUser[0]->showMenu();
+			}
 
-				User user;
-				user.showMenu();
+			else if (user->role == "WORKER") {
+				ptrUser[1]->showMenu();
 			}
 			else if (user->role == "ADMIN") {
-				Admin admin;
-				admin.showMenu();
+				ptrUser[2]->showMenu();
 			}
 			session.login = "";
 			session.password = "";
