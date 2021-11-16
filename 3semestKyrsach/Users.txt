@@ -6,7 +6,3 @@ ADMIN
 user
 user
 USER
-2
-admin
-admin
-USER

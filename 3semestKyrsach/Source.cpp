@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <vector>
 #include <iomanip>
+#include <cstdio>// для функции remove
 
 
 // Отключение ошибок
@@ -25,7 +26,7 @@ using namespace std;
 
 
 // Меню
-static class AdminMenu
+class AdminMenu
 {
 public:
 	static void ShowMenuAdd();
@@ -34,9 +35,12 @@ public:
 	static void showAllFilm();
 	static void showAllUser();
 	static void ShowMenuData();
+	static void deleteUser();
+	static void deleteFilm();
+
 };
 // Защита информации
-static class Security {
+class Security {
 private:
 	int res;
 	string text;
@@ -95,7 +99,7 @@ public:
 	}
 
 };
-class Worker : public IShowMainMenu, public User {
+class Worker : public User {
 private:
 	void showPanelWorker() {
 
@@ -132,7 +136,7 @@ public:
 		User::showPunktMenu();
 	}
 };
-class Admin : public IShowMainMenu, public User {
+class Admin : public User {
 private:
 	void showPanelAdmin() {
 		while (true)
@@ -530,6 +534,7 @@ void authUser() {
 
 // Регистрация
 void regAccount() {
+	system("cls");
 	FileAction file;
 	SmartPointer<User> user = new User;
 	SmartPointer<User> userExist = new User;
@@ -550,7 +555,7 @@ void regAccount() {
 		else {
 			user->role = "USER";
 		}
-		cout << *user;
+		
 		file.create(fileUser, *user);
 	}
 	else {
@@ -704,7 +709,7 @@ void AdminMenu::ShowMenuData() {
 
 }
 void AdminMenu::showAllUser() {
-	vector<User> Users; //Вектор строки, используемый для указания статуса пользователя
+	vector<User> Users;
 
 	file.findAll(fileUser, Users);
 	cout << "Список всех пользователей:" << endl;
@@ -728,13 +733,17 @@ void AdminMenu::showAllFilm() {
 	cout << "--------------------------------------------------------------------------------" << endl;
 	cout << "|       Название фильма         |      Всего мест       |   Стоимость билета   |" << endl;
 	cout << "--------------------------------------------------------------------------------" << endl;
-
+	bool is_Find_One_of_Film = false;
 	for (size_t i = 0; i < Films.size(); i++) {
 		cout << "|" << std::setw(31) << Films[i].nameFilm << "|" << setw(23) << Films[i].place
 			<< "|" << setw(22) << Films[i].coast << "|" << endl;
+		is_Find_One_of_Film = true;
 	}
 	cout << "--------------------------------------------------------------------------------" << endl;
-
+	if (!is_Find_One_of_Film) {
+		system("cls");
+		cout << "Список фильмов пуст!\n";
+	}
 	cout << endl;
 	Films.clear();
 }
@@ -801,11 +810,13 @@ void AdminMenu::ShowMenuDelete() {
 		cout << ">>> ";
 		int command = Security::securityInt();
 		if (command == 1) {
-
+			system("cls");
+			deleteUser();
 			system("pause");
 		}
 		else if (command == 2) {
-
+			system("cls");
+			deleteFilm();
 			system("pause");
 		}
 		else if (command == 3) {
@@ -814,12 +825,86 @@ void AdminMenu::ShowMenuDelete() {
 
 	}
 }
+void AdminMenu::deleteUser() {
+	vector<User> Users;
+	string loginUser;
+	cout << "Удаление пользователя\n\n";
+	
+	cout << "Введите логин пользователя, котороого хотите удалить: ";
+	cin >> loginUser;
+	rewind(stdin);
+	if (loginUser == session.login) {
+		cout << "Вы не можете удалить свой же аккаунт, будьте аккуратнее!\n";
+		return;
+	}
+	file.findAll(fileUser, Users);
+	bool is_Find_User = false;
+	for (size_t i = 0; i < Users.size(); i++) {
+		if (Users[i].login == loginUser && Users[i].role == "ADMIN") {
+			is_Find_User = true;
+			cout << "Вы не можете удалить администратора!\n";
+			break;
+		}
+		if (Users[i].login == loginUser && Users[i].role != "ADMIN") {
+			Users.erase(Users.begin() + i);
+			is_Find_User = true;
+			// Перезапись
+			ofstream fileInput(fileUser);
+			for (size_t i = 0; i < Users.size(); i++) {
+				fileInput << Users[i];
+			}
+			fileInput.close();
+			cout << "Пользователь был успешно удален!\n";
+			break;
+		}
+	}
+	if (!is_Find_User) {
+		cout << "Пользователь "<< loginUser<< " не был найден.\n";
+	}
+}
+void AdminMenu::deleteFilm() {
+	vector<Film> Films;
+	string filmName;
+	cout << "Удаление Фильма\n\n";
+
+	cout << "Введите название фильма: ";
+	cin >> filmName;
+	rewind(stdin);
+	file.findAll(fileFilms, Films);
+
+	bool is_Find_Film = false;
+	for (size_t i = 0; i < Films.size(); i++) {
+		
+		if (Films[i].nameFilm == filmName) {
+			Films.erase(Films.begin() + i);
+			is_Find_Film = true;
+			// Перезапись
+			ofstream fileInput(fileFilms);
+			for (size_t i = 0; i < Films.size(); i++) {
+				fileInput << Films[i];
+			}
+			fileInput.close();
+			if (!remove((filmName + ".txt").c_str())) {
+				cout << "Фильм был успешно удален!\n";
+
+			}
+			else {
+				cout << "Фильм был успешно удален, но возникла проблема с удалением файла!\n";
+			}
+			
+			break;
+		}
+	}
+	if (!is_Find_Film) {
+		cout << "Фильм " << filmName << " не был найден.\n";
+	}
+}
+
+
 //Two command
 void AdminMenu::ShowMenuAdd() {
 	while (true) {
 		system("cls");
-
-
 
 		cout << "Добавление данных\n\n";
 		cout << "1) Создать пользователя\n";
