@@ -22,9 +22,6 @@ using namespace std;
 
 
 
-
-
-
 // Меню
 class AdminMenu
 {
@@ -139,6 +136,8 @@ public:
 class Admin : public User {
 private:
 	void showPanelAdmin() {
+
+
 		while (true)
 		{
 			system("cls");
@@ -154,31 +153,35 @@ private:
 			cout << "7) Выйти из cистемы\n";
 			cout << "Введите номер команды: ";
 			int command = Security::securityInt();
-			switch (command)
-			{
-			case 1: // Отобразить список 
+			if (command == 1) {
 				AdminMenu::ShowMenuData();
-				break;
-			case 2: // Добавить данные
+			}
+			else if (command == 2) {
 				AdminMenu::ShowMenuAdd();
-				break;
-			case 3: // Редактировать данные
-				cout << "3";
-				break;
-			case 4: // Удаление данных
+			}
+			else if (command == 3)
+			{
+
+			}
+			else if (command == 4)
+			{
 				AdminMenu::ShowMenuDelete();
+			}
+			else if (command == 5)
+			{
+
+			}
+			else if (command == 6)
+			{
 				break;
-			case 5: // Соритровка данных
-				cout << "5";
-				break;
-			case 6:
-				showMenu();
-				break;
-			case 7:
+			}
+			else if (command == 7) // Выход из аккаунта
+			{
 				system("cls");
 				cout << "Вы вышли из системы\n";
 				exit(1);
 			}
+			
 		}
 
 	}
@@ -188,8 +191,7 @@ public:
 			system("cls");
 			cout << "_____________________ГЛАВНОЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ / АДМИНА_____________\n\n" << endl;
 			this->showPunktMenu();
-			int command;
-			command = Security::securityInt();
+			int command= Security::securityInt();
 			if (command == 0) {
 				this->showPanelAdmin();
 			}
@@ -203,7 +205,7 @@ public:
 
 			}
 			else if (command == 4) {
-				break;
+				return;
 			}
 
 		}
@@ -357,11 +359,46 @@ public:
 	void buyTicket();
 };
 
-// Регистрация
-void regAccount();
 
-// Авторизация
-void authUser();
+class Menu : virtual protected Admin, virtual protected User {
+public:
+	template <class T, class T2>
+	void createMenu(T2 T::* pFunc[], int value) {
+		T obj;
+		if (value != -1) {
+			(obj.*pFunc[value - 1])();
+		}
+	}
+	template <class T, class T2>
+	void showTextMenu(string& text, T2 T::* pFunc[], int length) {
+		int downSize = length - length + 1;
+		length++;
+		while (true) {
+			system("cls");
+			cout << text;
+			cout << "Введите номер команды: ";
+			int command = Security::securityInt();
+			if (command < downSize || command >length) {
+				cout << "Введите значение от " << 1 << " до " << length << endl;
+				system("pause");
+			}
+			else if (command == length) {
+				break;
+			}
+			else {
+				T obj;
+				(obj.*pFunc[command - 1])();
+			}
+		}
+	}
+
+	// Регистрация
+	void regAccount();
+
+	// Авторизация
+	void authUser();
+};
+
 
 // Перегрузка
 ostream& operator<<(ostream& out, const User& user);
@@ -387,37 +424,20 @@ int main() {
 	SetConsoleOutputCP(1251);
 	SetConsoleCP(1251);
 	system("cls");
-
-
-	while (true) {
-		system("cls");
-		cout << "Главное меню\n\n";
-		cout << "1) Авторизация\n";
-		cout << "2) Регистрация\n";
-		cout << "3) Выход из системы\n";
-		cout << "Введите номер команды: ";
-		int command = Security::securityInt();
-		switch (command)
-		{
-		case 1:
-			authUser();
-			break;
-		case 2:
-			regAccount();
-			system("pause");
-			break;
-		case 3:
-			system("cls");
-			cout << "Вы вышли из системы\n";
-			return 0;
-			break;
-		}
-	}
-
+	Menu menu;
+	void (Menu:: * pFunc[2])() = { &Menu::authUser, &Menu::regAccount };
+	int length = sizeof(pFunc) / sizeof(pFunc[0]);
+	string textMenu = "Главное меню\n\n1) Авторизация\n2) Регистрация\n3) Выход из системы\n";
+	menu.showTextMenu(textMenu, pFunc, length);
 
 
 	return 0;
 }
+
+
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 ostream& operator<<(ostream& out, const User& user)
 {
@@ -461,7 +481,7 @@ istream& operator >> (istream& in, Tickets& p)
 }
 
 // Авторизация
-void authUser() {
+void Menu::authUser() {
 
 	int countTry = 3;
 
@@ -533,7 +553,7 @@ void authUser() {
 }
 
 // Регистрация
-void regAccount() {
+void Menu::regAccount() {
 	system("cls");
 	FileAction file;
 	SmartPointer<User> user = new User;
@@ -976,6 +996,7 @@ void AdminMenu::createUser() {
 	cout << "2) Работник\n";
 	cout << "3) Администратор\n";
 	cout << "4) Отменить создание пользователя\n";
+
 	while (true) {
 		int chooseRole = Security::securityInt();
 		if (chooseRole == 1) {
