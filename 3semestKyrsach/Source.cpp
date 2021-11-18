@@ -35,6 +35,9 @@ public:
 	static void deleteUser();
 	static void deleteFilm();
 	static void createUser();
+	static void ShowMenuEdit();
+	static void editUserRole();
+	static void	editUserLogin();
 };
 // Защита информации
 class Security {
@@ -136,8 +139,6 @@ public:
 class Admin : public User {
 private:
 	void showPanelAdmin() {
-
-
 		while (true)
 		{
 			system("cls");
@@ -161,7 +162,7 @@ private:
 			}
 			else if (command == 3)
 			{
-
+				AdminMenu::ShowMenuEdit();
 			}
 			else if (command == 4)
 			{
@@ -360,7 +361,7 @@ public:
 };
 
 
-class Menu : virtual protected Admin, virtual protected User {
+class Menu : virtual protected Admin, virtual protected User, virtual protected AdminMenu {
 public:
 	template <class T, class T2>
 	void createMenu(T2 T::* pFunc[], int value) {
@@ -1025,7 +1026,130 @@ void AdminMenu::createUser() {
 
 }
 
+// Three command
+void AdminMenu::ShowMenuEdit() {
+	system("cls");
+	cout << "Редактирование данных\n\n";
+	Menu menu;
+
+	void (Menu:: * pFunc[3])() = { nullptr, nullptr, nullptr };
+	int length = sizeof(pFunc) / sizeof(pFunc[0]);
+	string textMenu = "Редактирование информации\n\n1) Изменить роль пользователя\n2) Изменить логин пользователя\n3) Изменить название фильма\n4) Вернуться назад\n";
+	menu.showTextMenu(textMenu, pFunc, length);
+}
+void AdminMenu::editUserRole() {
+	system("cls");
+	User user;
+	cout << "Редактирование роли пользователя\n\n";
+
+	cout << "Введите логин пользователя: ";
+	cin >> user.login;
+	rewind(stdin);
+	bool isResult_Find = file.findOne(fileUser, &User::login, user.login, user);
+	if (!isResult_Find) {
+		cout << "В базе данных нет такого пользователя.\n";
+		return;
+	}
+	cout << "Выберите новую роль: ";
+	string bufferRole = user.role;
+	while (true) {
+		int chooseRole = Security::securityInt();
+		if (chooseRole == 1) {
+			user.role = "USER";
+			break;
+		}
+		else if (chooseRole == 2) {
+			user.role = "WORKER";
+			break;
+		}
+		else if (chooseRole == 3) {
+			user.role = "ADMIN";
+			break;
+		}
+		else if (chooseRole == 4) {
+			return;
+		}
+		else {
+			cout << "Такого варианта нет!\n";
+		}
+		if (bufferRole == user.role) {
+			cout << "У пользователя уже и есть такая роль. Выберите другую или отмените редактирование.\n";
+			system("pause");
+		}
+	}
+
+	vector<User> users;
+	file.findAll(fileUser, users);
+	for (size_t i = 0; i < users.size(); i++) {
+		if (users[i].login == user.login) {
+			users[i].role = user.role;
+			cout << "Роль успешно успешно изменена.\n";
+			system("pause");
+			break;
+		}
+	}
+	// перезапись в файл
+	ofstream fileInput(fileUser);
+	for (size_t i = 0; i < users.size(); i++) {
+		fileInput << users[i];
+	}
+	fileInput.close();
+
+	users.clear();
+
+
+}
+void AdminMenu::editUserLogin() {
+	system("cls");
+	User user;
+	cout << "Редактирование логина пользователя\n\n";
+
+	cout << "Введите логин пользователя: ";
+	cin >> user.login;
+	rewind(stdin);
+	bool isResult_Find = file.findOne(fileUser, &User::login, user.login, user);
+	if (!isResult_Find) {
+		cout << "В базе данных нет такого пользователя.\n";
+		return;
+	}
+	cout << "Введите новый логин: ";
+	SmartPointer<User> newUser = new User;
+	cin >> newUser->login;
+	rewind(stdin);
+	bool isResult_find_new_login = file.findOne(fileUser, &User::login, newUser->login, *newUser);
+	if (isResult_find_new_login) {
+		cout << "В базе данных уже есть пользователь с таким логином.\n";
+		return;
+	}
+	vector<User> users;
+	file.findAll(fileUser, users);
+	for (size_t i = 0; i < users.size(); i++) {
+		if (newUser->login == users[i].login) {
+			users[i].login = newUser->login;
+			cout << "Логин успешно изменен.\n";
+			system("pause");
+			break;
+		}
+	}
+	// перезапись в файл
+	ofstream fileInput(fileUser);
+	for (size_t i = 0; i < users.size(); i++) {
+		fileInput << users[i];
+	}
+	fileInput.close();
+
+	users.clear();
+}
+//void AdminMenu::editFilmName() {
+//	system("cls");
+//	Film film;
+//
+//	cout << "Редактирование названия фильма\n\n";
+//	cin >> user.login;
+//	rewind(stdin);
+//}
 // Security
+
 int Security::securityInt() {
 	int res;
 	while (!(cin >> res) || ((getchar()) != '\n')) {
