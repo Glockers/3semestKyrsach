@@ -38,6 +38,7 @@ public:
 	static void ShowMenuEdit();
 	static void editUserRole();
 	static void	editUserLogin();
+	static void editFilmName();
 };
 // Защита информации
 class Security {
@@ -282,6 +283,14 @@ public:
 		fileRead.close();
 	}
 	template<class T>
+	void reWrite(string nameFile, vector<T>& array) {
+		ofstream fileWrite(nameFile);
+		for (size_t i = 0; i < array.size(); i++) {
+			fileWrite << array[i];
+		};
+		fileWrite.close();
+	};
+	template<class T>
 	void create(string nameFile, T& obj) {
 		fstream fileWrite(nameFile, ios::app);
 		fileWrite << obj;
@@ -404,8 +413,7 @@ public:
 			system("cls");
 			cout << text;
 			cout << "Введите номер команды: ";
-			int command;
-			cin >> command;
+			int command = Security::securityInt();
 			if (command < downSize || command >value) {
 				cout << "Введите значение от " << downSize << " до " << value << endl;
 				system("pause");
@@ -1055,12 +1063,11 @@ void AdminMenu::createUser() {
 // Three command
 void AdminMenu::ShowMenuEdit() {
 	system("cls");
-	cout << "Редактирование данных\n\n";
 	Menu menu;
-	void (*pFunc[3]) () = { &AdminMenu::editUserRole ,&AdminMenu::editUserLogin, nullptr };
+	void (*pFunc[3]) () = { &AdminMenu::editUserRole ,&AdminMenu::editUserLogin, &AdminMenu::editFilmName};
 
 	int length = sizeof(pFunc) / sizeof(pFunc[0]);
-	string textMenu = "Редактирование информации\n\n1) Изменить роль пользователя\n2) Изменить логин пользователя\n3) Изменить название фильма\n4) Вернуться назад\n";
+	string textMenu = "Редактирование данных\n\n1) Изменить роль пользователя\n2) Изменить логин пользователя\n3) Изменить название фильма\n4) Вернуться назад\n";
 	menu.showTextMenu(textMenu, pFunc, length);
 }
 void AdminMenu::editUserRole() {
@@ -1168,15 +1175,56 @@ void AdminMenu::editUserLogin() {
 
 	users.clear();
 }
-//void AdminMenu::editFilmName() {
-//	system("cls");
-//	Film film;
-//
-//	cout << "Редактирование названия фильма\n\n";
-//	cin >> user.login;
-//	rewind(stdin);
-//}
-// Security
+void AdminMenu::editFilmName() {
+	system("cls");
+	Film film;
+	Place place;
+	
+
+	cout << "Введите название фильма\n";
+	string nameFilm, newNameFilm;
+	cin >> nameFilm;
+	rewind(stdin);
+	cout << "Введите новое название фильма\n";
+	cin >> newNameFilm;
+	rewind(stdin);
+
+	if (!file.findOne(fileFilms, &Film::nameFilm, nameFilm, film) && !file.is_file_exist(nameFilm+".txt")) {
+		cout << "Фильм не найден\n";
+		system("pause");
+		return;
+	}
+	if (file.findOne(fileFilms, &Film::nameFilm, newNameFilm, film)) {
+		cout << "Такой фильм уже есть, введите другое название фильма\n";
+		system("pause");
+		return;
+	}
+
+	vector<Film> films;
+	file.findAll(fileFilms, films);
+	vector<Place> Places;
+	file.findAll(nameFilm + ".txt", Places);
+
+	for (size_t i = 0; i < films.size(); i++) {
+		if (films[i].nameFilm == nameFilm){
+			films[i].nameFilm = newNameFilm;
+			break;
+		}
+	}
+	if (remove((nameFilm + ".txt").c_str())) {
+		cout << "Ошибка перезаписи файла\n";
+		system("pause");
+		return;
+	}
+	file.reWrite(fileFilms, films);
+	file.reWrite(newNameFilm+".txt", Places);
+
+	cout << "Фильм был успешно изменен.\n";
+	system("pause");
+	
+}
+
+
 
 int Security::securityInt() {
 	int res;
