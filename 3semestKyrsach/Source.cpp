@@ -361,17 +361,22 @@ public:
 };
 
 
-class Menu : virtual protected Admin, virtual protected User, virtual protected AdminMenu {
+class Menu : virtual public Admin, virtual public User, virtual public AdminMenu {
 public:
 	template <class T, class T2>
-	void createMenu(T2 T::* pFunc[], int value) {
+	static void createMenu(T2 T::* pFunc[], int value) {
 		T obj;
 		if (value != -1) {
 			(obj.*pFunc[value - 1])();
 		}
 	}
+	static void createMenu(void (*method[])(), int value) {
+		value = value - 1;
+		method[value]();
+	};
+
 	template <class T, class T2>
-	void showTextMenu(string& text, T2 T::* pFunc[], int length) {
+	static void showTextMenu(string& text, T2 T::* pFunc[], int length) {
 		int downSize = length - length + 1;
 		length++;
 		while (true) {
@@ -389,6 +394,27 @@ public:
 			else {
 				T obj;
 				(obj.*pFunc[command - 1])();
+			}
+		}
+	}
+	static void showTextMenu(string& text, void (*method[])(), int value) {
+		int downSize = value - value + 1;
+		value++;
+		while (true) {
+			system("cls");
+			cout << text;
+			cout << "Введите номер команды: ";
+			int command;
+			cin >> command;
+			if (command < downSize || command >value) {
+				cout << "Введите значение от " << downSize << " до " << value << endl;
+				system("pause");
+			}
+			else if (command == value) {
+				break;
+			}
+			else {
+				method[command-1]();
 			}
 		}
 	}
@@ -1031,8 +1057,8 @@ void AdminMenu::ShowMenuEdit() {
 	system("cls");
 	cout << "Редактирование данных\n\n";
 	Menu menu;
+	void (*pFunc[3]) () = { &AdminMenu::editUserRole ,&AdminMenu::editUserLogin, nullptr };
 
-	void (Menu:: * pFunc[3])() = { nullptr, nullptr, nullptr };
 	int length = sizeof(pFunc) / sizeof(pFunc[0]);
 	string textMenu = "Редактирование информации\n\n1) Изменить роль пользователя\n2) Изменить логин пользователя\n3) Изменить название фильма\n4) Вернуться назад\n";
 	menu.showTextMenu(textMenu, pFunc, length);
@@ -1048,6 +1074,7 @@ void AdminMenu::editUserRole() {
 	bool isResult_Find = file.findOne(fileUser, &User::login, user.login, user);
 	if (!isResult_Find) {
 		cout << "В базе данных нет такого пользователя.\n";
+		system("cls");
 		return;
 	}
 	cout << "Выберите новую роль: ";
@@ -1119,6 +1146,7 @@ void AdminMenu::editUserLogin() {
 	bool isResult_find_new_login = file.findOne(fileUser, &User::login, newUser->login, *newUser);
 	if (isResult_find_new_login) {
 		cout << "В базе данных уже есть пользователь с таким логином.\n";
+		system("cls");
 		return;
 	}
 	vector<User> users;
