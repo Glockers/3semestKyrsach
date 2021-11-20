@@ -22,8 +22,13 @@ using namespace std;
 
 
 
+
 // Меню
-class AdminMenu
+class UserMenu {
+public:
+	static void showFreePlace();
+};
+class AdminMenu: public UserMenu
 {
 public:
 	static void ShowMenuAdd();
@@ -55,6 +60,7 @@ public:
 	static void InputPassword(string& password);
 	static string securityString();
 	static int securityInt();
+	static void securityDate(int& day, int& month, int& year);
 };
 
 
@@ -84,7 +90,7 @@ public:
 
 			}
 			else if (command == 2) {
-
+				UserMenu::showFreePlace();
 			}
 			else if (command == 3) {
 
@@ -194,6 +200,7 @@ private:
 	}
 public:
 	void showMenu() {
+		   
 		while (true) {
 			system("cls");
 			cout << "_____________________ГЛАВНОЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ / АДМИНА_____________\n\n" << endl;
@@ -206,7 +213,7 @@ public:
 
 			}
 			else if (command == 2) {
-
+				AdminMenu::showFreePlace();
 			}
 			else if (command == 3) {
 
@@ -223,33 +230,6 @@ public:
 	}
 };
 
-// Дата
-class Date {
-	int day, month, year;
-public:
-
-	void setDate() {
-		while (true) {
-			cout << "Введите день: ";
-			day = Security::securityInt();
-			cout << "Введите месяц: ";
-			month = Security::securityInt();
-			cout << "Введите год: ";
-			year = Security::securityInt();
-
-
-			if ((day >= 0 && day <= 31) && (month >= 0 && month <= 12) && (year >= 1900 && year <= 2021)) {
-				break;
-			}
-			else {
-				cout << "Ошибка в дате!\n";
-			}
-		}
-	}
-	void show() {
-		cout << this->day << "." << this->month << "." << this->year << endl;
-	}
-};
 
 // Сессия
 struct SessionHandler {
@@ -355,9 +335,9 @@ class Film {
 public:
 	string nameFilm;
 	int coast;
-	int place;
+	int place, day, month, year;
 	void addFilm();
-
+	
 	friend ostream& operator << (ostream& os, const Film& p);
 	friend istream& operator >> (istream& in, Film& p);
 };
@@ -465,9 +445,6 @@ void SortShell(vector<T>& arr, T2 T::* field)
 			T tmp = arr[i];
 			int j=0;
 			
-
-			cout << "";
-
 			for (j = i - step; j >= 0 && arr[j].*field > tmp.*field; j -= step) {
 				arr[j + step] = arr[j];
 			}
@@ -477,7 +454,6 @@ void SortShell(vector<T>& arr, T2 T::* field)
 		step /= 2;
 	}
 }
-
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -518,11 +494,11 @@ istream& operator>>(istream& in, User& point)
 
 ostream& operator << (ostream& os, const Film& p)
 {
-	return os << p.nameFilm << "\n" << p.place << "\n" << p.coast << endl;
+	return os << p.nameFilm << "\n" << p.place << "\n" << p.coast <<"\n" << p.day<< "\n"<< p.month<< "\n"<< p.year<< endl;
 }
 istream& operator >> (istream& in, Film& p)
 {
-	return in >> p.nameFilm >> p.place >> p.coast;
+	return in >> p.nameFilm >> p.place >> p.coast>>p.day>>p.month>>p.year;
 }
 
 ostream& operator << (ostream& os, const Place& p)
@@ -682,6 +658,9 @@ void Film::addFilm() {
 
 	cout << "Введите стоимость билета: ";
 	coast = Security::securityInt();
+	system("cls");
+	cout << "Введите дату начала\n ";
+	Security::securityDate(this->day, this->month, this->year);
 
 	FileAction file;
 	string nameFile = nameFilm + ".txt";
@@ -1382,4 +1361,66 @@ void Security::InputPassword(string& password)
 	else
 		cout << "Введите пароль!\n" << endl;;
 }
+void Security::securityDate(int& day, int& month, int& year) {
+	while (true) {
+		cout << "Введите день: ";
+		day = securityInt();
+		cout << "Введите месяц: ";
+		month = securityInt();
+		cout << "Введите год: ";
+		year = securityInt();
+		if ((day >= 0 && day <= 31) && (month >= 0 && month <= 12)&&(year>=1900 && year<=2021)) {
+			break;
+		}
+		else {
+			cout << "Ошибка в дате!\n";
+		}
+	}
+}
+
+
+// Меню Юзера
+void UserMenu::showFreePlace() {
+	system("cls");
+	cout << "Список свободных мест\n\n";
+	vector<Film> films;
+	file.findAll(fileFilms, films);
+	cout << "----------------------------------------------------------------------------------------" << endl;
+	cout << "|   Кол-во свободных мест   |      Название фильма       |      Дата начала фильма     |" << endl;
+	cout << "----------------------------------------------------------------------------------------" << endl;
+
+	vector<Place> places;
+	for (size_t i = 0; i < films.size();i++) {
+		file.findAll(films[i].nameFilm + ".txt", places);
+		string date = "";
+		int countNotFree = 0, countFree = 0;
+		for (size_t i = 0; i < places.size(); i++) {
+			string status;
+			string login;
+			if (places[i].is_Free_Place) {
+				status = "Занято";
+				countNotFree++;
+			}
+			else {
+				status = "Свободно";
+				countFree++;
+			}
+			if (places[i].login == "NONE") {
+				login = "Нет";
+			}
+			else {
+				login = places[i].login;
+			}
+			
+		}
+		cout << "|" << std::setw(26) << countFree << " |" << setw(27) << films[i].nameFilm
+			<< " |" << setw(20) << films[i].day<<"."<<films[i].month<<"."<<films[i].year << " |" << endl;
+		places.clear();
+	}
+
+	cout << "----------------------------------------------------------------------------------------" << endl;
+
+	system("pause");
+}
+
 
