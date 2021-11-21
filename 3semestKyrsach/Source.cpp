@@ -26,7 +26,7 @@ using namespace std;
 // Меню
 class UserMenu {
 public:
-	static void showFreePlace();
+	static void show_Free_Place_On_Film();
 };
 class AdminMenu : public UserMenu
 {
@@ -87,10 +87,10 @@ public:
 			int command;
 			command = Security::securityInt();
 			if (command == 1) {
-
+				buyTicket();
 			}
 			else if (command == 2) {
-				UserMenu::showFreePlace();
+				UserMenu::show_Free_Place_On_Film();
 			}
 			else if (command == 3) {
 
@@ -109,7 +109,8 @@ public:
 		cout << ">>> ";
 
 	}
-
+	// method
+	void buyTicket();
 };
 class Worker : public User {
 private:
@@ -200,7 +201,6 @@ private:
 	}
 public:
 	void showMenu() {
-
 		while (true) {
 			system("cls");
 			cout << "_____________________ГЛАВНОЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ / АДМИНА_____________\n\n" << endl;
@@ -213,7 +213,7 @@ public:
 
 			}
 			else if (command == 2) {
-				AdminMenu::showFreePlace();
+				AdminMenu::show_Free_Place_On_Film();
 			}
 			else if (command == 3) {
 
@@ -259,41 +259,41 @@ private:
 class FileAction {
 public:
 	template<class T>
-	void findAll(string nameFile, vector<T>& new_operations) {
+	void findAll(string nameFile, vector<T>& savedObject) {
 		ifstream fileRead(nameFile);
-		T obj;
-		while (fileRead >> obj) {
-			new_operations.push_back(obj);
+		T varieable_object;
+		while (fileRead >> varieable_object) {
+			savedObject.push_back(varieable_object);
 		}
 		fileRead.close();
 	}
 	template<class T>
-	void reWrite(string nameFile, vector<T>& array) {
-		ofstream fileWrite(nameFile);
+	void reWrite(string fileName, vector<T>& array) {
+		ofstream fileWrite(fileName);
 		for (size_t i = 0; i < array.size(); i++) {
 			fileWrite << array[i];
 		};
 		fileWrite.close();
 	};
 	template<class T>
-	void create(string nameFile, T& obj) {
-		fstream fileWrite(nameFile, ios::app);
-		fileWrite << obj;
+	void create(string fileName, T& object) {
+		fstream fileWrite(fileName, ios::app);
+		fileWrite << object;
 		fileWrite.close();
 	}
 	template<class T, typename T2, class T3>
-	bool findOne(string nameFile, T2 T::* method, T3 value, T& saveObj) {
-		ifstream fileRead(nameFile);
-		T obj;
+	bool findOne(string fileName, T2 T::* method, T3 value, T& savedObject) {
+		ifstream fileRead(fileName);
+		T variable_object;
 		bool resultFind = false;
 		if (!fileRead.is_open()) {
 			cout << "Ошибка открытия файла\n";
 			fileRead.close();
 			return resultFind;
 		}
-		while (fileRead >> obj) {
-			if (obj.*method == value) {
-				saveObj = obj;
+		while (fileRead >> variable_object) {
+			if (variable_object.*method == value) {
+				savedObject = variable_object;
 				resultFind = true;
 				break;
 			}
@@ -318,29 +318,20 @@ public:
 		}
 		fileRead.close();
 	}
+
 	bool is_file_exist(const string& fileName)
 	{
-		ifstream infile(fileName);
-		bool res = infile.good();
-		cout << res << endl;
-		infile.close();
-		return res;
+		ifstream openFile(fileName);
+		bool isOpen = openFile.good();
+		openFile.close();
+		return isOpen;
 	};
 };
 FileAction file;
 
 
 // ТЗ классы
-class Film {
-public:
-	string nameFilm;
-	int coast;
-	int place, day, month, year;
-	void addFilm();
 
-	friend ostream& operator << (ostream& os, const Film& p);
-	friend istream& operator >> (istream& in, Film& p);
-};
 
 class Place {
 public:
@@ -350,87 +341,102 @@ public:
 	friend ostream& operator << (ostream& os, const Place& p);
 	friend istream& operator >> (istream& in, Place& p);
 };
-class Tickets : public Film {
-public:
-	string login;
-	string nameFilm;
-	string place;
-	int id;
 
-	void buyTicket();
+class Film {
+public:
+	string nameFilm;
+	int coast;
+	int place, day, month, year;
+	void add_New_Film();
+
+	friend ostream& operator << (ostream& os, const Film& p);
+	friend istream& operator >> (istream& in, Film& p);
+
+};
+class Tickets : public Film {
+private:
+	string login;
+	int id;
+public:
+	// getter
+	string getLogin() {
+		return this->login;
+	}
+	int getId() {
+		return this->id;
+	}
+
+	// setter
+	void set_login(string login) {
+		this->login = login;
+	}
+	void set_Id(int id) {
+		this->id = id;
+	}
+
+
+	
 	friend ostream& operator << (ostream& os, const Tickets& p);
 	friend istream& operator >> (istream& in, Tickets& p);
+	friend class FileAction;
 };
 
 
 class Menu : virtual public Admin, virtual public User, virtual public AdminMenu {
 public:
 	template <class T, class T2>
-	static void createMenu(T2 T::* pFunc[], int value) {
-		T obj;
-		if (value != -1) {
-			(obj.*pFunc[value - 1])();
-		}
-	}
-	static void createMenu(void (*method[])(), int value) {
-		value = value - 1;
-		method[value]();
-	};
-
-	template <class T, class T2>
-	static void showTextMenu(string& text, T2 T::* pFunc[], int length) {
-		int downSize = length - length + 1;
-		length++;
+	static void createMenu(string& menu_description, T2 T::* pMethod[], int lengthArray) {
+		int lowerLimit = lengthArray - lengthArray + 1;
+		lengthArray++;
 		while (true) {
 			system("cls");
-			cout << text;
+			cout << menu_description;
 			cout << "Введите номер команды: ";
 			int command = Security::securityInt();
-			if (command < downSize || command >length) {
-				cout << "Введите значение от " << 1 << " до " << length << endl;
+			if (command < lowerLimit || command >lengthArray) {
+				cout << "Введите значение от " << 1 << " до " << lengthArray << endl;
 				system("pause");
 			}
-			else if (command == length) {
+			else if (command == lengthArray) {
 				break;
 			}
 			else {
-				T obj;
-				(obj.*pFunc[command - 1])();
+				T object;
+				(object.*pMethod[command - 1])();
 			}
 		}
 	}
-	static void showTextMenu(string& text, void (*method[])(), int value) {
-		int downSize = value - value + 1;
-		value++;
+	static void createMenu(string& menu_description, void (*pMethod[])(), int lengthArray) {
+		int lowerLimit = lengthArray - lengthArray + 1;
+		lengthArray++;
 		while (true) {
 			system("cls");
-			cout << text;
+			cout << menu_description;
 			cout << "Введите номер команды: ";
 			int command = Security::securityInt();
-			if (command < downSize || command >value) {
-				cout << "Введите значение от " << downSize << " до " << value << endl;
+			if (command < lowerLimit || command >lengthArray) {
+				cout << "Введите значение от " << lowerLimit << " до " << lengthArray << endl;
 				system("pause");
 			}
-			else if (command == value) {
+			else if (command == lengthArray) {
 				break;
 			}
 			else {
-				method[command - 1]();
+				pMethod[command - 1]();
 			}
 		}
 	}
 
 	// Регистрация
-	void regAccount();
+	void reg_an_account();
 
 	// Авторизация
-	void authUser();
+	void log_in_account();
 };
-
 
 // Перегрузка
 ostream& operator<<(ostream& out, const User& user);
-istream& operator>>(istream& in, User& point);
+istream& operator>>(istream& in, User& user);
 
 template<class T, class T2>
 void SortShell(vector<T>& arr, T2 T::* field)
@@ -464,10 +470,10 @@ int main() {
 	SetConsoleOutputCP(1251);
 	SetConsoleCP(1251);
 	system("cls");
-	void (Menu:: * pFunc[2])() = { &Menu::authUser, &Menu::regAccount };
-	int length = sizeof(pFunc) / sizeof(pFunc[0]);
-	string textMenu = "Главное меню\n\n1) Авторизация\n2) Регистрация\n3) Выход из системы\n";
-	Menu::showTextMenu(textMenu, pFunc, length);
+	void (Menu:: * pFuncArray[2])() = { &Menu::log_in_account, &Menu::reg_an_account };
+	int lengthArray = sizeof(pFuncArray) / sizeof(pFuncArray[0]);
+	string menu_description = "Главное меню\n\n1) Авторизация\n2) Регистрация\n3) Выход из системы\n";
+	Menu::createMenu(menu_description, pFuncArray, lengthArray);
 
 
 	return 0;
@@ -512,15 +518,15 @@ istream& operator >> (istream& in, Place& p)
 
 ostream& operator << (ostream& os, const Tickets& p)
 {
-	return os << p.id << "\n" << p.login << "\n" << p.nameFilm << "\n" << p.place << endl;
+	return os << p.id << "\n" << p.login << "\n" << p.nameFilm << "\n" << p.place << p.day << "\n" << p.month << "\n" << p.year << endl;
 }
 istream& operator >> (istream& in, Tickets& p)
 {
-	return in >> p.id >> p.login >> p.nameFilm >> p.place;
+	return in >> p.id >> p.login >> p.nameFilm >> p.place >> p.day >> p.month >> p.year;
 }
 
 // Авторизация
-void Menu::authUser() {
+void Menu::log_in_account() {
 
 	int countTry = 3;
 
@@ -592,9 +598,8 @@ void Menu::authUser() {
 }
 
 // Регистрация
-void Menu::regAccount() {
+void Menu::reg_an_account() {
 	system("cls");
-	FileAction file;
 	SmartPointer<User> user = new User;
 	SmartPointer<User> userExist = new User;
 
@@ -648,7 +653,7 @@ void Menu::regAccount() {
 }
 
 // FILMS
-void Film::addFilm() {
+void Film::add_New_Film() {
 	cout << "Введите название фильма: ";
 	cin >> nameFilm;
 	rewind(stdin);
@@ -662,7 +667,6 @@ void Film::addFilm() {
 	cout << "Введите дату начала\n ";
 	Security::securityDate(this->day, this->month, this->year);
 
-	FileAction file;
 	string nameFile = nameFilm + ".txt";
 	if (file.is_file_exist(nameFile)) {
 		cout << "Такой фильм уже существует!\n";
@@ -681,29 +685,27 @@ void Film::addFilm() {
 };
 
 // Tickets
-void Tickets::buyTicket() {
-	FileAction file;
-	Tickets ticket;
+void User::buyTicket() {
 	Film film;
-
+	Tickets ticket;
 	system("cls");
-	cout << "Введите название фильма:";
-	cin >> this->nameFilm;
-	string name = this->nameFilm + ".txt";
+	cout << "Введите название фильма: ";
+	cin >> ticket.nameFilm;
+	string name = ticket.nameFilm + ".txt";
 	rewind(stdin);
 
-	Film* isFilm = new Film;
-	if (!file.findOne(fileFilms, &Film::nameFilm, nameFilm, *isFilm) || !file.is_file_exist(name)) {
+	
+	if (!file.findOne(fileFilms, &Film::nameFilm, ticket.nameFilm, film) || !file.is_file_exist(name)) {
 		cerr << "Такого фильма нет!\n";
-		delete isFilm;
 		return;
 	}
-	delete isFilm;
 
-
+	// Загружаем данные
 	vector<Place> places;
 	file.findAll(name, places);
-	auto iter = places.cbegin(); // указатель на первый элемент
+
+
+
 	int count_free_place = 0;
 	cout << "Свободные места: ";
 	for (int i = 0; i < places.size(); i++)
@@ -721,7 +723,6 @@ void Tickets::buyTicket() {
 		return;
 	}
 
-	this->login = session.login;
 	int choosePlace;
 	while (true) {
 		system("cls");
@@ -737,23 +738,22 @@ void Tickets::buyTicket() {
 		}
 		else {
 			places[choosePlace].is_Free_Place = true;
-			places[choosePlace].login = this->login;
-
-
-			ofstream fileInpute(name);
-
-			for (int i = 0; i < places.size(); i++) {
-				fileInpute << places[i];
-			}
-			fileInpute.close();
-
-			cout << "Вы купили билет!!!\n";
-			system("pause");
+			places[choosePlace].login = session.login;
+			file.reWrite(name, places);
 			break;
 		}
 		system("pause");
 	}
+	ticket.place = choosePlace;
+	//ticket.day = film.day;
+	ticket.set_login(session.login);
+	file.getUnicSeed(fileTickets, ticket);
+	
+	// Запись
+	file.create(fileTickets, *this);
 
+	cout << "Вы купили билет!!!\n";
+	system("pause");
 };
 
 // AdminMenu
@@ -908,7 +908,7 @@ void AdminMenu::ShowMenuAdd() {
 		}
 		else if (command == 2) {
 			Film film;
-			film.addFilm();
+			film.add_New_Film();
 			system("pause");
 		}
 		else if (command == 3) {
@@ -970,12 +970,11 @@ void AdminMenu::createUser() {
 // Three command
 void AdminMenu::ShowMenuEdit() {
 	system("cls");
-	Menu menu;
-	void (*pFunc[3]) () = { &AdminMenu::editUserRole ,&AdminMenu::editUserLogin, &AdminMenu::editFilmName };
 
-	int length = sizeof(pFunc) / sizeof(pFunc[0]);
-	string textMenu = "Редактирование данных\n\n1) Изменить роль пользователя\n2) Изменить логин пользователя\n3) Изменить название фильма\n4) Вернуться назад\n";
-	menu.showTextMenu(textMenu, pFunc, length);
+	void (*pArrayFunc[3]) () = { &AdminMenu::editUserRole ,&AdminMenu::editUserLogin, &AdminMenu::editFilmName };
+	int lengthArray = sizeof(pArrayFunc) / sizeof(pArrayFunc[0]);
+	string menu_description = "Редактирование данных\n\n1) Изменить роль пользователя\n2) Изменить логин пользователя\n3) Изменить название фильма\n4) Вернуться назад\n";
+	Menu::createMenu(menu_description, pArrayFunc, lengthArray);
 }
 void AdminMenu::editUserRole() {
 	system("cls");
@@ -1197,27 +1196,26 @@ void AdminMenu::deleteUser() {
 }
 void AdminMenu::deleteFilm() {
 	vector<Film> Films;
-	string filmName;
-	cout << "Удаление Фильма\n\n";
+	string desired_movie_name;
 
+
+	cout << "Удаление Фильма\n\n";
 	cout << "Введите название фильма: ";
-	cin >> filmName;
+	cin >> desired_movie_name;
 	rewind(stdin);
 	file.findAll(fileFilms, Films);
 
-	bool is_Find_Film = false;
+	bool is_One_foun_film = false;
 	for (size_t i = 0; i < Films.size(); i++) {
 
-		if (Films[i].nameFilm == filmName) {
+		if (Films[i].nameFilm == desired_movie_name) {
 			Films.erase(Films.begin() + i);
-			is_Find_Film = true;
+			is_One_foun_film = true;
+
 			// Перезапись
-			ofstream fileInput(fileFilms);
-			for (size_t i = 0; i < Films.size(); i++) {
-				fileInput << Films[i];
-			}
-			fileInput.close();
-			if (!remove((filmName + ".txt").c_str())) {
+			file.reWrite(fileFilms, Films);
+			
+			if (!remove((desired_movie_name + ".txt").c_str())) {
 				cout << "Фильм был успешно удален!\n";
 
 			}
@@ -1228,36 +1226,36 @@ void AdminMenu::deleteFilm() {
 			break;
 		}
 	}
-	if (!is_Find_Film) {
-		cout << "Фильм " << filmName << " не был найден.\n";
+	if (!is_One_foun_film) {
+		cout << "Фильм " << desired_movie_name << " не был найден.\n";
 	}
 }
 
 //Five command
 void AdminMenu::ShowMenuSort() {
 	system("cls");
-	void (*pFunc[3]) () = { &AdminMenu::sortLoginUser ,&AdminMenu::sortNameFilm, &AdminMenu::sortFilmDate };
+	void (*pArrayFunc[3]) () = { &AdminMenu::sortLoginUser ,&AdminMenu::sortNameFilm, &AdminMenu::sortFilmDate };
 
-	int length = sizeof(pFunc) / sizeof(pFunc[0]);
-	string textMenu = "Сортировка данных\n\n1) Сортировать пользователей по логину\n2) Сортировать название фильмов\n3) Сортировать билеты по дате\n4) Вернуться назад\n";
-	Menu::showTextMenu(textMenu, pFunc, length);
+	int length = sizeof(pArrayFunc) / sizeof(pArrayFunc[0]);
+	string menu_description = "Сортировка данных\n\n1) Сортировать пользователей по логину\n2) Сортировать название фильмов\n3) Сортировать билеты по дате\n4) Вернуться назад\n";
+	Menu::createMenu(menu_description, pArrayFunc, length);
 }
 void AdminMenu::sortLoginUser() {
 	system("cls");
 	User user;
-	vector <User> users;
-	file.findAll(fileUser, users);
-	SortShell(users, &User::login);
+	vector <User> Users;
+	file.findAll(fileUser, Users);
 
+	SortShell(Users, &User::login);
 	cout << "Список всех пользователей:" << endl;
 	cout << "----------------------------------------------------------------------------------" << endl;
 	cout << "|   ID   |       Логин         |            Пароль                  |   Статус   |" << endl;
 	cout << "----------------------------------------------------------------------------------" << endl;
 
-	for (size_t i = 0; i < users.size(); i++) {
+	for (size_t i = 0; i < Users.size(); i++) {
 
-		cout << "|" << setw(7) << users[i].id << " |" << setw(20) << users[i].login << " |" << setw(35) << users[i].password
-			<< " |" << setw(11) << users[i].role << " |" << endl;
+		cout << "|" << setw(7) << Users[i].id << " |" << setw(20) << Users[i].login << " |" << setw(35) << Users[i].password
+			<< " |" << setw(11) << Users[i].role << " |" << endl;
 	}
 	cout << "--------------------------------------------------------------------------------- " << endl;
 
@@ -1267,25 +1265,25 @@ void AdminMenu::sortLoginUser() {
 void AdminMenu::sortNameFilm() {
 	system("cls");
 	Film film;
-	vector <Film> films;
-	file.findAll(fileFilms, films);
-	SortShell(films, &Film::nameFilm);
+	vector <Film> Films;
+	file.findAll(fileFilms, Films);
+	SortShell(Films, &Film::nameFilm);
 	cout << "Список всех фильмов:" << endl;
 	cout << "--------------------------------------------------------------------------------" << endl;
 	cout << "|       Название фильма         |      Всего мест       |   Стоимость билета   |" << endl;
 	cout << "--------------------------------------------------------------------------------" << endl;
-	bool is_Find_One_of_Film = false;
-	for (size_t i = 0; i < films.size(); i++) {
-		cout << "|" << std::setw(31) << films[i].nameFilm << "|" << setw(23) << films[i].place
-			<< "|" << setw(22) << films[i].coast << "|" << endl;
-		is_Find_One_of_Film = true;
+	bool isResult_Find_of_film = false;
+	for (size_t i = 0; i < Films.size(); i++) {
+		isResult_Find_of_film = true;
+
+		cout << "|" << setw(31) << Films[i].nameFilm << "|" << setw(23) << Films[i].place
+			<< "|" << setw(22) << Films[i].coast << "|" << endl;
 	}
 	cout << "--------------------------------------------------------------------------------" << endl;
-	if (!is_Find_One_of_Film) {
+	if (!isResult_Find_of_film) {
 		system("cls");
 		cout << "Список фильмов пуст!\n";
 	}
-	cout << endl;
 
 	cout << endl;
 	system("pause");
@@ -1293,33 +1291,32 @@ void AdminMenu::sortNameFilm() {
 void AdminMenu::sortFilmDate() {
 	system("cls");
 	Tickets ticket;
-	vector <Film> films;
-	file.findAll(fileFilms, films);
-	for (size_t i = 0; i < films.size(); i++) {
-		for (size_t j = i; j < films.size(); j++) {
-			if (films[i].day < films[j].day && films[i].month < films[j].month && films[i].year < films[j].year) {
-				swap(films[i], films[j]);
+	vector <Film> Films;
+	file.findAll(fileFilms, Films);
+	for (size_t i = 0; i < Films.size(); i++) {
+		for (size_t j = i; j < Films.size(); j++) {
+			if (Films[i].day < Films[j].day && Films[i].month < Films[j].month && Films[i].year < Films[j].year) {
+				swap(Films[i], Films[j]);
 			}
 		}
-
 	}
 
 	cout << "Список всех фильмов\n" << endl;
 	cout << "--------------------------------------------------------------------------------------------------" << endl;
 	cout << "|       Название фильма         |      Всего мест       |   Стоимость билета   |   Дата начала   |" << endl;
 	cout << "--------------------------------------------------------------------------------------------------" << endl;
-	bool is_Find_One_of_Film = false;
-	for (size_t i = 0; i < films.size(); i++) {
-		cout	<< "|" << setw(31) << films[i].nameFilm << "|" 
-				<< setw(23) << films[i].place
-				<< "|" << setw(21) << films[i].coast << " |" 
-				<< setw(8) << films[i].day << "." << films[i].month << "." << films[i].year << " |"
-				<< endl;
-		is_Find_One_of_Film = true;
+	bool isResult_found_film = false;
+	for (size_t i = 0; i < Films.size(); i++) {
+		cout << "|" << setw(31) << Films[i].nameFilm << "|"
+			<< setw(23) << Films[i].place
+			<< "|" << setw(21) << Films[i].coast << " |"
+			<< setw(8) << Films[i].day << "." << Films[i].month << "." << Films[i].year << " |"
+			<< endl;
+		isResult_found_film = true;
 	}
 	cout << "--------------------------------------------------------------------------------------------------" << endl;
 
-	if (!is_Find_One_of_Film) {
+	if (!isResult_found_film) {
 		system("cls");
 		cout << "Список фильмов пуст!\n";
 		system("pause");
@@ -1415,24 +1412,25 @@ void Security::securityDate(int& day, int& month, int& year) {
 
 
 // Меню Юзера
-void UserMenu::showFreePlace() {
+void UserMenu::show_Free_Place_On_Film() {
 	system("cls");
 	cout << "Список свободных мест\n\n";
-	vector<Film> films;
-	file.findAll(fileFilms, films);
+	vector<Film> Films;
+	vector<Place> Places;
+
+	file.findAll(fileFilms, Films);
 	cout << "----------------------------------------------------------------------------------------" << endl;
 	cout << "|   Кол-во свободных мест   |      Название фильма       |      Дата начала фильма     |" << endl;
 	cout << "----------------------------------------------------------------------------------------" << endl;
 
-	vector<Place> places;
-	for (size_t i = 0; i < films.size(); i++) {
-		file.findAll(films[i].nameFilm + ".txt", places);
+	for (size_t i = 0; i < Films.size(); i++) {
+		file.findAll(Films[i].nameFilm + ".txt", Places);
 		string date = "";
 		int countNotFree = 0, countFree = 0;
-		for (size_t i = 0; i < places.size(); i++) {
+		for (size_t i = 0; i < Places.size(); i++) {
 			string status;
 			string login;
-			if (places[i].is_Free_Place) {
+			if (Places[i].is_Free_Place) {
 				status = "Занято";
 				countNotFree++;
 			}
@@ -1440,17 +1438,17 @@ void UserMenu::showFreePlace() {
 				status = "Свободно";
 				countFree++;
 			}
-			if (places[i].login == "NONE") {
+			if (Places[i].login == "NONE") {
 				login = "Нет";
 			}
 			else {
-				login = places[i].login;
+				login = Places[i].login;
 			}
 
 		}
-		cout << "|" << std::setw(26) << countFree << " |" << setw(27) << films[i].nameFilm
-			<< " |" << setw(20) << films[i].day << "." << films[i].month << "." << films[i].year << " |" << endl;
-		places.clear();
+		cout << "|" << std::setw(26) << countFree << " |" << setw(27) << Films[i].nameFilm
+			<< " |" << setw(20) << Films[i].day << "." << Films[i].month << "." << Films[i].year << " |" << endl;
+		Places.clear();
 	}
 
 	cout << "----------------------------------------------------------------------------------------" << endl;
