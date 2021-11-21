@@ -27,6 +27,7 @@ using namespace std;
 class UserMenu {
 public:
 	static void show_Free_Place_On_Film();
+	static void show_my_Tickets();
 };
 class AdminMenu : public UserMenu
 {
@@ -93,7 +94,7 @@ public:
 				UserMenu::show_Free_Place_On_Film();
 			}
 			else if (command == 3) {
-
+				UserMenu::show_my_Tickets();
 			}
 			else if (command == 4) {
 				break;
@@ -210,13 +211,13 @@ public:
 				this->showPanelAdmin();
 			}
 			else if (command == 1) {
-
+				User::buyTicket();
 			}
 			else if (command == 2) {
 				AdminMenu::show_Free_Place_On_Film();
 			}
 			else if (command == 3) {
-
+				AdminMenu::show_my_Tickets();
 			}
 			else if (command == 4) {
 				return;
@@ -330,9 +331,8 @@ public:
 FileAction file;
 
 
+
 // ТЗ классы
-
-
 class Place {
 public:
 	int place;
@@ -351,16 +351,22 @@ public:
 
 	friend ostream& operator << (ostream& os, const Film& p);
 	friend istream& operator >> (istream& in, Film& p);
-
+	friend class Tickets;
 };
-class Tickets : public Film {
+class Tickets {
 private:
 	string login;
 	int id;
+	Film film;
 public:
 	// getter
+
+
 	string getLogin() {
 		return this->login;
+	}
+	Film getfilm() {
+		return this->film;
 	}
 	int getId() {
 		return this->id;
@@ -373,11 +379,15 @@ public:
 	void set_Id(int id) {
 		this->id = id;
 	}
-
+	void set_film(Film film) {
+		this->film = film;
+	}
 
 	
-	friend ostream& operator << (ostream& os, const Tickets& p);
-	friend istream& operator >> (istream& in, Tickets& p);
+
+
+	friend ostream& operator<<(ostream& in, const Tickets& point);
+	friend istream& operator>>(istream& out, Tickets& point);
 	friend class FileAction;
 };
 
@@ -474,8 +484,6 @@ int main() {
 	int lengthArray = sizeof(pFuncArray) / sizeof(pFuncArray[0]);
 	string menu_description = "Главное меню\n\n1) Авторизация\n2) Регистрация\n3) Выход из системы\n";
 	Menu::createMenu(menu_description, pFuncArray, lengthArray);
-
-
 	return 0;
 }
 
@@ -516,14 +524,13 @@ istream& operator >> (istream& in, Place& p)
 	return in >> p.place >> p.is_Free_Place >> p.login;
 }
 
-ostream& operator << (ostream& os, const Tickets& p)
-{
-	return os << p.id << "\n" << p.login << "\n" << p.nameFilm << "\n" << p.place << p.day << "\n" << p.month << "\n" << p.year << endl;
+ostream& operator<<(ostream& in, const Tickets& point) {
+	return in << point.id << "\n" << point.login << "\n" << point.film << endl;
 }
-istream& operator >> (istream& in, Tickets& p)
-{
-	return in >> p.id >> p.login >> p.nameFilm >> p.place >> p.day >> p.month >> p.year;
+istream& operator>>(istream& out, Tickets& point) {
+	return out >> point.id >> point.login >> point.film;
 }
+
 
 // Авторизация
 void Menu::log_in_account() {
@@ -536,7 +543,6 @@ void Menu::log_in_account() {
 		Worker worker;
 		Admin admin;
 		User userr;
-
 
 		IShowMainMenu* ptrUser[3];
 		ptrUser[0] = &userr;
@@ -657,7 +663,11 @@ void Film::add_New_Film() {
 	cout << "Введите название фильма: ";
 	cin >> nameFilm;
 	rewind(stdin);
-
+	if (this->nameFilm == fileUser || this->nameFilm == fileTickets || this->nameFilm == fileTickets) {
+		cout << "Файл с таким названием уже существует, введите другое название.\n";
+		system("pause");
+		return;
+	}
 	cout << "Введите количество мест: ";
 	place = Security::securityInt();
 
@@ -690,19 +700,19 @@ void User::buyTicket() {
 	Tickets ticket;
 	system("cls");
 	cout << "Введите название фильма: ";
-	cin >> ticket.nameFilm;
-	string name = ticket.nameFilm + ".txt";
+	string desired_film_name;
+	cin >> desired_film_name;
 	rewind(stdin);
 
 	
-	if (!file.findOne(fileFilms, &Film::nameFilm, ticket.nameFilm, film) || !file.is_file_exist(name)) {
+	if (!file.findOne(fileFilms, &Film::nameFilm, desired_film_name, film) || !file.is_file_exist(desired_film_name+".txt")) {
 		cerr << "Такого фильма нет!\n";
 		return;
 	}
 
 	// Загружаем данные
 	vector<Place> places;
-	file.findAll(name, places);
+	file.findAll(desired_film_name + ".txt", places);
 
 
 
@@ -726,9 +736,11 @@ void User::buyTicket() {
 	int choosePlace;
 	while (true) {
 		system("cls");
-		cout << "Выберите свободное место: ";
+		cout << "Выберите свободное место(выход: -1): ";
 		choosePlace = Security::securityInt() - 1;
-
+		if(choosePlace==-2){
+			return;
+		}
 		if (choosePlace < 0 || choosePlace >(places.size()) - 1) {
 			cout << "Такого места нет!\n";
 
@@ -739,18 +751,17 @@ void User::buyTicket() {
 		else {
 			places[choosePlace].is_Free_Place = true;
 			places[choosePlace].login = session.login;
-			file.reWrite(name, places);
+			file.reWrite(desired_film_name + ".txt", places);
 			break;
 		}
 		system("pause");
 	}
-	ticket.place = choosePlace;
-	//ticket.day = film.day;
+	film.place = choosePlace+1;
 	ticket.set_login(session.login);
 	file.getUnicSeed(fileTickets, ticket);
-	
+	ticket.set_film(film);
 	// Запись
-	file.create(fileTickets, *this);
+	file.create(fileTickets, ticket);
 
 	cout << "Вы купили билет!!!\n";
 	system("pause");
@@ -925,8 +936,8 @@ void AdminMenu::createUser() {
 	cout << "Введите логин пользователя: ";
 	cin >> user.login;
 	rewind(stdin);
-	bool resultFind = file.findOne(fileUser, &User::login, user.login, user);
-	if (resultFind) {
+	bool isResultFound = file.findOne(fileUser, &User::login, user.login, user);
+	if (isResultFound) {
 		cout << "Такой логин есть, придумайте другой.\n";
 		return;
 	}
@@ -1425,26 +1436,11 @@ void UserMenu::show_Free_Place_On_Film() {
 
 	for (size_t i = 0; i < Films.size(); i++) {
 		file.findAll(Films[i].nameFilm + ".txt", Places);
-		string date = "";
-		int countNotFree = 0, countFree = 0;
+		int countFree = 0;
 		for (size_t i = 0; i < Places.size(); i++) {
-			string status;
-			string login;
-			if (Places[i].is_Free_Place) {
-				status = "Занято";
-				countNotFree++;
-			}
-			else {
-				status = "Свободно";
+			if (!Places[i].is_Free_Place) {
 				countFree++;
 			}
-			if (Places[i].login == "NONE") {
-				login = "Нет";
-			}
-			else {
-				login = Places[i].login;
-			}
-
 		}
 		cout << "|" << std::setw(26) << countFree << " |" << setw(27) << Films[i].nameFilm
 			<< " |" << setw(20) << Films[i].day << "." << Films[i].month << "." << Films[i].year << " |" << endl;
@@ -1455,5 +1451,33 @@ void UserMenu::show_Free_Place_On_Film() {
 
 	system("pause");
 }
+void UserMenu::show_my_Tickets() {
+	system("cls");
+	cout << "Мои билеты\n\n";
 
+	vector<Tickets> tickets;
+	file.findAll(fileTickets, tickets);
+
+	cout << "Список всех моих билетов:" << endl;
+	cout << "---------------------------------------------------------------------------------" << endl;
+	cout << "|    Название фильма     |     Место      |   Стоимость билета   | Дата начала  |" << endl;
+	cout << "---------------------------------------------------------------------------------" << endl;
+	
+	bool isOneFilm = false;
+	for (size_t i = 0; i < tickets.size(); i++) {
+		if (tickets[i].getLogin() == session.login) {
+			 isOneFilm = true;
+			Film film = tickets[i].getfilm();
+			cout << "|" << setw(23) << film.nameFilm << " |" << setw(15) << film.place << " |" << setw(21) << film.coast << " |" << setw(5) << film.day << "." << film.month << "." << film.year << " |" << endl;
+		}
+	}
+	cout << "---------------------------------------------------------------------------------" << endl;
+
+	if (isOneFilm == false) {
+		system("cls");
+		cout << "У вас нет никаких билетов!\n";
+	}
+	cout << endl;
+	system("pause");
+}
 
