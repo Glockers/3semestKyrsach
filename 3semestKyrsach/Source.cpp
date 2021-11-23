@@ -16,9 +16,9 @@
 using namespace std;
 
 
-#define fileUser "Users.txt"
-#define fileFilms "FilmList.txt"
-#define fileTickets "Tickets.txt"
+const string fileUser = "Users.txt";
+const string fileFilms = "FilmList.txt";
+const string fileTickets = "Tickets.txt";
 
 
 // Меню
@@ -73,10 +73,10 @@ public:
 
 // Типы пользователей
 class User : public IShowMainMenu {
-	
-public:
 	string login, role, password;
 	int id;
+public:
+	
 
 	void showMenu() {
 		while (true) {
@@ -126,21 +126,23 @@ public:
 	}
 
 	//setter
-	void get_login(string login) {
+	void set_login(string login) {
 		this->login = login;
 	}
-	void get_role(string role) {
+	void set_role(string role) {
 		this->role = role;
 	}
-	void get_password(string password) {
+	void set_password(string password) {
 		this->password = password;
 	}
-	void get_id(int id) {
+	void set_id(int id) {
 		this->id = id;
 	}
 
 	friend ostream& operator<<(ostream& out, const User& user);
 	friend istream& operator>>(istream& in, User& point);
+
+	friend class FileAction;
 };
 
 class Admin : public User {
@@ -275,8 +277,8 @@ public:
 		fileWrite << object;
 		fileWrite.close();
 	}
-	template<class T, typename T2, class T3>
-	bool findOne(string fileName, T2 T::* method, T3 value, T& savedObject) {
+	template<class T, typename T2, class any_type>
+	bool findOne(const string& fileName, T2 T::* method, any_type value, T& savedObject) {
 		ifstream fileRead(fileName);
 		T variable_object;
 		bool resultFind = false;
@@ -286,7 +288,7 @@ public:
 			return resultFind;
 		}
 		while (fileRead >> variable_object) {
-			if (variable_object.*method == value) {
+			if ((variable_object.*method)() == value) {
 				savedObject = variable_object;
 				resultFind = true;
 				break;
@@ -388,15 +390,43 @@ public:
 };
 
 class Film {
-
-public:
 	string nameFilm;
-	int coast;
-	int place, day, month, year;
+	int coast,
+		place;
+	Date date;
+public:
+	
 	void add_New_Film();
 
-	friend ostream& operator << (ostream& os, const Film& p);
-	friend istream& operator >> (istream& in, Film& p);
+	void set_nameFilm(string nameFilm) {
+		this->nameFilm = nameFilm;
+	}
+	string get_nameFilm() {
+		return this->nameFilm;
+	}
+	// coast
+	void set_coast(int coast) {
+		this->coast = coast;
+	}
+	int get_coast() {
+		return this->coast;
+	}
+	// place
+	void set_place(int place) {
+		this->place = place;
+	}
+	int get_place() {
+		return this->place;
+	}
+	void set_date(Date date) {
+		this->date = date;
+	}
+	Date get_date() {
+		return this->date;
+	}
+
+	friend ostream& operator << (ostream& os, const Film& film);
+	friend istream& operator >> (istream& in, Film& film);
 	friend class Tickets;
 };
 class Tickets {
@@ -506,7 +536,7 @@ void SortShell(vector<T>& arr, T2 T::* field)
 			T tmp = arr[i];
 			int j = 0;
 
-			for (j = i - step; j >= 0 && arr[j].*field > tmp.*field; j -= step) {
+			for (j = i - step; j >= 0 && (arr[j].*field)() > (tmp.*field)(); j -= step) {
 				arr[j + step] = arr[j];
 			}
 			arr[j + step] = tmp;
@@ -525,7 +555,7 @@ int main() {
 	SetConsoleOutputCP(1251);
 	SetConsoleCP(1251);
 	system("cls");
-	void (Menu:: * pFuncArray[2])() = { &Menu::log_in_account, &Menu::reg_an_account };
+	void (Menu:: * pFuncArray[])() = { &Menu::log_in_account, &Menu::reg_an_account };
 	int lengthArray = sizeof(pFuncArray) / sizeof(pFuncArray[0]);
 	string menu_description = "Главное меню\n\n1) Авторизация\n2) Регистрация\n3) Выход из системы\n";
 	Menu::createMenu(menu_description, pFuncArray, lengthArray);
@@ -553,11 +583,11 @@ istream& operator>>(istream& in, User& point)
 
 ostream& operator << (ostream& os, const Film& p)
 {
-	return os << p.nameFilm << "\n" << p.place << "\n" << p.coast << "\n" << p.day << "\n" << p.month << "\n" << p.year << endl;
+	return os << p.nameFilm << "\n" << p.place << "\n" << p.coast << "\n" << p.date << endl;
 }
 istream& operator >> (istream& in, Film& p)
 {
-	return in >> p.nameFilm >> p.place >> p.coast >> p.day >> p.month >> p.year;
+	return in >> p.nameFilm >> p.place >> p.coast >> p.date;
 }
 
 ostream& operator << (ostream& os, const Place& p)
@@ -577,19 +607,28 @@ istream& operator>>(istream& out, Tickets& point) {
 }
 
 
+ostream& operator << (ostream& os, const Date& p)
+{
+	return os << p.day << "\n" << p.month << "\n" << p.year << endl;
+}
+istream& operator >> (istream& in, Date& p)
+{
+	return in >> p.day >> p.month >> p.year;
+}
+
 // Авторизация
 void Menu::log_in_account() {
 
-	int countTry = 3;
+	int countTryInputPassword = 3;
 
-	while (countTry > 0) {
-		SmartPointer<User> userLogin = new User;
-		SmartPointer<User> user = new User;
+	while (countTryInputPassword > 0) {
+		SmartPointer<User> usersFromDataBase = new User;
+		//SmartPointer<User> user = new User;
 		Admin admin;
-		User userr;
+		User userr, user;
 
 		IShowMainMenu* ptrUser[2];
-		ptrUser[0] = &userr;
+		ptrUser[0] = &user;
 		ptrUser[1] = &admin;
 
 
@@ -597,38 +636,39 @@ void Menu::log_in_account() {
 		cout << "Авторизация\n\n" << endl;
 		rewind(stdin);
 		cout << "Введите Login: ";
-		userLogin->login = Security::securityString();
+		user.set_login(Security::securityString());
 		rewind(stdin);
 		cout << "Введите Password: ";
-		Security::InputPassword(userLogin->password);
-
+		string psw;
+		Security::InputPassword(psw);
+		user.set_password(psw);
 
 		// Проверка
-		file.findOne(fileUser, &User::login, userLogin->login, *user);
+		file.findOne(fileUser, &User::get_login, user.get_login(), user);
 
-		if (user->password == "" || user->password != userLogin->password) {
-			countTry--;
-			cout << "Вы ввели неверный логин или пароль! У вас осталось " << countTry << " попытки." << endl;
-			if (countTry == 0) {
+		if (psw == "" || psw != user.get_password()) {
+			countTryInputPassword--;
+			cout << "Вы ввели неверный логин или пароль! У вас осталось " << countTryInputPassword << " попытки." << endl;
+			if (countTryInputPassword == 0) {
 				cout << "Вы исчерпали лимит попыток :(" << endl;
 				cout << "Вы были заблокированны на 5 секунд\n" << endl;
 				Sleep(5000);
 			}
 			system("pause");
 		}
-		else if (userLogin->password == user->password) {
-			cout << "Вы вошли как " << user->role << endl;
-			session.login = user->login;
-			session.password = user->password;
-			session.role = user->role;
+		else if (psw == user.get_password()) {
+			cout << "Вы вошли как " << user.get_role() << endl;
+			session.login = user.get_login();
+			session.password = user.get_password();
+			session.role = user.get_role();
 
 			system("pause");
 			system("cls");
 
-			if (user->role == "USER") {
+			if (user.get_role() == "USER") {
 				ptrUser[0]->showMenu();
 			}
-			else if (user->role == "ADMIN") {
+			else if (user.get_role() == "ADMIN") {
 				ptrUser[1]->showMenu();
 			}
 			session.login = "";
@@ -645,48 +685,54 @@ void Menu::log_in_account() {
 // Регистрация
 void Menu::reg_an_account() {
 	system("cls");
-	SmartPointer<User> user = new User;
-	SmartPointer<User> userExist = new User;
+	//SmartPointer<User> user = new User;
+	SmartPointer<User> users = new User;
+	User user;
 
 	cout << "РЕГИСТРАЦИЯ\n\n";
 	cout << "Введите ваш будующий логин: ";
-	cin >> user->login;
+	string newMyLogin;
+	cin >> newMyLogin;
 	rewind(stdin);
+	user.set_login(newMyLogin);
 	while (true) {
 		system("cls");
 		cout << "Введите надежный пароль: ";
-		Security::InputPassword(user->password);
-		if (user->password.size() < 6) {
+		string newMyPassword;
+		Security::InputPassword(newMyPassword);
+
+		if (newMyPassword.length() < 6) {
 			cout << "Слишком короткий пароль. Введите еще раз\n";
-			user->password = "";
+			newMyPassword = "";
 		}
-		else if (user->password.size() >= 6) {
-			string password;
+		else if (newMyPassword.size() >= 6) {
+			string rptPassword;
 			cout << "Повторите пароль: ";
-			Security::InputPassword(password);
-			if (user->password == password) {
+			Security::InputPassword(rptPassword);
+			if (newMyPassword == rptPassword) {
+				user.set_password(newMyPassword);
 				break;
 			}
 			else {
 				cout << "Пароли не совпадают\n";
-				user->password = "";
+				newMyPassword = "";
 			}
 		}
 		system("pause");
 	}
 
 
-	file.findOne(fileUser, &User::login, user->login, *userExist);
-	if (userExist->login != user->login && user->password != userExist->password) {
-		file.getUnicSeed(fileUser, *user);
-		if (user->id == 0) {
-			user->role = "ADMIN";
+	file.findOne(fileUser, &User::get_password, user.get_password(), *users);
+	if (users->get_login() != user.get_login() && users->get_password() !=  user.get_password()) {
+		file.getUnicSeed(fileUser, user);
+		if (user.get_id() == 0) {
+			user.get_role() = "ADMIN";
 		}
 		else {
-			user->role = "USER";
+			user.get_role() = "USER";
 		}
 
-		file.create(fileUser, *user);
+		file.create(fileUser, user);
 		system("cls");
 		cout << "Вы зарегистрировались. Далее для продолжения работы войдите в личный кабинет.\n";
 	}
@@ -714,7 +760,8 @@ void Film::add_New_Film() {
 	coast = Security::securityInt();
 	system("cls");
 	cout << "Введите дату начала\n ";
-	Security::securityDate(this->day, this->month, this->year);
+	
+	Security::securityDate(this->get_date().get_day(), this->month, this->year);
 
 	string nameFile = nameFilm + ".txt";
 	if (file.is_file_exist(nameFile)) {
@@ -744,7 +791,7 @@ void User::buyTicket() {
 	rewind(stdin);
 
 
-	if (!file.findOne(fileFilms, &Film::nameFilm, desired_film_name, film) || !file.is_file_exist(desired_film_name + ".txt")) {
+	if (!file.findOne(fileFilms, &Film::get_nameFilm, desired_film_name, film) || !file.is_file_exist(desired_film_name + ".txt")) {
 		cerr << "Такого фильма нет!\n";
 		return;
 	}
@@ -795,7 +842,7 @@ void User::buyTicket() {
 		}
 		system("pause");
 	}
-	film.place = choosePlace + 1;
+	film.set_place(choosePlace + 1);
 	ticket.set_login(session.login);
 	file.getUnicSeed(fileTickets, ticket);
 	ticket.set_film(film);
@@ -854,8 +901,8 @@ void AdminMenu::showAllUser() {
 
 	for (size_t i = 0; i < Users.size(); i++) {
 
-		cout << "|" << setw(7) << Users[i].id << " |" << setw(20) << Users[i].login << " |" << setw(35) << Users[i].password
-			<< " |" << setw(11) << Users[i].role << " |" << endl;
+		cout << "|" << setw(7) << Users[i].get_id() << " |" << setw(20) << Users[i].get_login() << " |" << setw(35) << Users[i].get_password()
+			<< " |" << setw(11) << Users[i].get_role() << " |" << endl;
 
 
 	}
@@ -874,8 +921,8 @@ void AdminMenu::showAllFilm() {
 	cout << "--------------------------------------------------------------------------------" << endl;
 	bool is_Find_One_of_Film = false;
 	for (size_t i = 0; i < Films.size(); i++) {
-		cout << "|" << std::setw(31) << Films[i].nameFilm << "|" << setw(23) << Films[i].place
-			<< "|" << setw(22) << Films[i].coast << "|" << endl;
+		cout << "|" << std::setw(31) << Films[i].get_nameFilm() << "|" << setw(23) << Films[i].get_place()
+			<< "|" << setw(22) << Films[i].get_coast() << "|" << endl;
 		is_Find_One_of_Film = true;
 	}
 	cout << "--------------------------------------------------------------------------------" << endl;
@@ -969,41 +1016,38 @@ void AdminMenu::ShowMenuAdd() {
 }
 void AdminMenu::createUser() {
 	system("cls");
-
-	cout << "Создание новового пользователя\n\n";
 	User user;
+	cout << "Создание новового пользователя\n\n";
+	
 	cout << "Введите логин пользователя: ";
-	cin >> user.login;
+	string founded_User;
+	cin >> founded_User;
 	rewind(stdin);
-	bool isResultFound = file.findOne(fileUser, &User::login, user.login, user);
+	bool isResultFound = file.findOne(fileUser, &User::get_login, founded_User, user);
 	if (isResultFound) {
 		cout << "Такой логин есть, придумайте другой.\n";
 		return;
 	}
 	cout << "Введите пароль пользователя: ";
-	Security::InputPassword(user.password);
+	string createdPassword;
+	Security::InputPassword(createdPassword);
 
 	cout << "Выберите роль пользователя: \n";
 	cout << "1) Пользователь\n";
-	cout << "2) Работник\n";
-	cout << "3) Администратор\n";
-	cout << "4) Отменить создание пользователя\n";
+	cout << "2) Администратор\n";
+	cout << "3) Отменить создание пользователя\n";
 
 	while (true) {
 		int chooseRole = Security::securityInt();
 		if (chooseRole == 1) {
-			user.role = "USER";
+			user.set_role("USER");
 			break;
 		}
 		else if (chooseRole == 2) {
-			user.role = "WORKER";
+			user.set_role("ADMIN");
 			break;
 		}
 		else if (chooseRole == 3) {
-			user.role = "ADMIN";
-			break;
-		}
-		else if (chooseRole == 4) {
 			return;
 		}
 		else {
@@ -1021,7 +1065,7 @@ void AdminMenu::createUser() {
 void AdminMenu::ShowMenuEdit() {
 	system("cls");
 
-	void (*pArrayFunc[3]) () = { &AdminMenu::editUserRole ,&AdminMenu::editUserLogin, &AdminMenu::editFilmName };
+	void (*pArrayFunc[]) () = { &AdminMenu::editUserRole ,&AdminMenu::editUserLogin, &AdminMenu::editFilmName };
 	int lengthArray = sizeof(pArrayFunc) / sizeof(pArrayFunc[0]);
 	string menu_description = "Редактирование данных\n\n1) Изменить роль пользователя\n2) Изменить логин пользователя\n3) Изменить название фильма\n4) Вернуться назад\n";
 	Menu::createMenu(menu_description, pArrayFunc, lengthArray);
@@ -1032,37 +1076,34 @@ void AdminMenu::editUserRole() {
 	cout << "Редактирование роли пользователя\n\n";
 
 	cout << "Введите логин пользователя: ";
-	cin >> user.login;
+	string desiredUser;
+	cin >> desiredUser;
 	rewind(stdin);
-	bool isResult_Find = file.findOne(fileUser, &User::login, user.login, user);
+	bool isResult_Find = file.findOne(fileUser, &User::get_login, desiredUser, user);
 	if (!isResult_Find) {
 		cout << "В базе данных нет такого пользователя.\n";
 		system("cls");
 		return;
 	}
 	cout << "Выберите новую роль: ";
-	string bufferRole = user.role;
+	string bufferRole = user.get_role();
 	while (true) {
 		int chooseRole = Security::securityInt();
 		if (chooseRole == 1) {
-			user.role = "USER";
+			user.set_role("USER");
 			break;
 		}
 		else if (chooseRole == 2) {
-			user.role = "WORKER";
+			user.set_role("ADMIN");
 			break;
 		}
 		else if (chooseRole == 3) {
-			user.role = "ADMIN";
-			break;
-		}
-		else if (chooseRole == 4) {
 			return;
 		}
 		else {
 			cout << "Такого варианта нет!\n";
 		}
-		if (bufferRole == user.role) {
+		if (bufferRole == user.get_role()) {
 			cout << "У пользователя уже и есть такая роль. Выберите другую или отмените редактирование.\n";
 			system("pause");
 		}
@@ -1071,8 +1112,8 @@ void AdminMenu::editUserRole() {
 	vector<User> users;
 	file.findAll(fileUser, users);
 	for (size_t i = 0; i < users.size(); i++) {
-		if (users[i].login == user.login) {
-			users[i].role = user.role;
+		if (users[i].get_login() == user.get_login()) {
+			users[i].get_role() = user.get_role();
 			cout << "Роль успешно успешно изменена.\n";
 			system("pause");
 			break;
@@ -1095,19 +1136,26 @@ void AdminMenu::editUserLogin() {
 	cout << "Редактирование логина пользователя\n\n";
 
 	cout << "Введите логин пользователя: ";
-	cin >> user.login;
+	string desiredUser;
+	cin >> desiredUser;
 	rewind(stdin);
-	bool isResult_Find = file.findOne(fileUser, &User::login, user.login, user);
+
+	bool isResult_Find = file.findOne(fileUser, &User::get_login, desiredUser, user);
 	if (!isResult_Find) {
 		cout << "В базе данных нет такого пользователя.\n";
 		return;
 	}
+
 	cout << "Введите новый логин: ";
 	SmartPointer<User> newUser = new User;
-	cin >> newUser->login;
+	string newLoginUser;
+	cin >> newLoginUser;
 	rewind(stdin);
-	bool isResult_find_new_login = file.findOne(fileUser, &User::login, newUser->login, *newUser);
-	if (isResult_find_new_login) {
+	
+
+	
+	bool isExist_new_login = file.findOne(fileUser, &User::get_login, newLoginUser, *newUser);
+	if (isExist_new_login) {
 		cout << "В базе данных уже есть пользователь с таким логином.\n";
 		system("cls");
 		return;
@@ -1115,8 +1163,8 @@ void AdminMenu::editUserLogin() {
 	vector<User> users;
 	file.findAll(fileUser, users);
 	for (size_t i = 0; i < users.size(); i++) {
-		if (newUser->login == users[i].login) {
-			users[i].login = newUser->login;
+		if (newUser->get_login() == users[i].get_login()) {
+			users[i].get_login() = newUser->get_login()  ;
 			cout << "Логин успешно изменен.\n";
 			system("pause");
 			break;
@@ -1145,12 +1193,12 @@ void AdminMenu::editFilmName() {
 	cin >> newNameFilm;
 	rewind(stdin);
 
-	if (!file.findOne(fileFilms, &Film::nameFilm, nameFilm, film) && !file.is_file_exist(nameFilm + ".txt")) {
+	if (!file.findOne(fileFilms, &Film::get_nameFilm, nameFilm, film) && !file.is_file_exist(nameFilm + ".txt")) {
 		cout << "Фильм не найден\n";
 		system("pause");
 		return;
 	}
-	if (file.findOne(fileFilms, &Film::nameFilm, newNameFilm, film)) {
+	if (file.findOne(fileFilms, &Film::get_nameFilm, newNameFilm, film)) {
 		cout << "Такой фильм уже есть, введите другое название фильма\n";
 		system("pause");
 		return;
@@ -1162,8 +1210,8 @@ void AdminMenu::editFilmName() {
 	file.findAll(nameFilm + ".txt", Places);
 
 	for (size_t i = 0; i < films.size(); i++) {
-		if (films[i].nameFilm == nameFilm) {
-			films[i].nameFilm = newNameFilm;
+		if (films[i].get_nameFilm() == nameFilm) {
+			films[i].get_nameFilm() = newNameFilm;
 			break;
 		}
 	}
@@ -1221,12 +1269,12 @@ void AdminMenu::deleteUser() {
 	file.findAll(fileUser, Users);
 	bool is_Find_User = false;
 	for (size_t i = 0; i < Users.size(); i++) {
-		if (Users[i].login == loginUser && Users[i].role == "ADMIN") {
+		if (Users[i].get_login() == loginUser && Users[i].get_role() == "ADMIN") {
 			is_Find_User = true;
 			cout << "Вы не можете удалить администратора!\n";
 			break;
 		}
-		if (Users[i].login == loginUser && Users[i].role != "ADMIN") {
+		if (Users[i].get_login() == loginUser && Users[i].get_login() != "ADMIN") {
 			Users.erase(Users.begin() + i);
 			is_Find_User = true;
 			// Перезапись
@@ -1257,7 +1305,7 @@ void AdminMenu::deleteFilm() {
 	bool is_One_foun_film = false;
 	for (size_t i = 0; i < Films.size(); i++) {
 
-		if (Films[i].nameFilm == desired_movie_name) {
+		if (Films[i].get_nameFilm() == desired_movie_name) {
 			Films.erase(Films.begin() + i);
 			is_One_foun_film = true;
 
@@ -1283,7 +1331,7 @@ void AdminMenu::deleteFilm() {
 //Five command
 void AdminMenu::ShowMenuSort() {
 	system("cls");
-	void (*pArrayFunc[3]) () = { &AdminMenu::sortLoginUser ,&AdminMenu::sortNameFilm, &AdminMenu::sortFilmDate };
+	void (*pArrayFunc[]) () = { &AdminMenu::sortLoginUser ,&AdminMenu::sortNameFilm, &AdminMenu::sortFilmDate };
 	int length = sizeof(pArrayFunc) / sizeof(pArrayFunc[0]);
 	string menu_description = "Сортировка данных\n\n1) Сортировать пользователей по логину\n2) Сортировать название фильмов\n3) Сортировать билеты по дате\n4) Вернуться назад\n";
 	Menu::createMenu(menu_description, pArrayFunc, length);
@@ -1295,7 +1343,7 @@ void AdminMenu::sortLoginUser() {
 	vector <User> Users;
 	file.findAll(fileUser, Users);
 
-	SortShell(Users, &User::login);
+	SortShell(Users, &User::get_login);
 	cout << "Список всех пользователей:" << endl;
 	cout << "----------------------------------------------------------------------------------" << endl;
 	cout << "|   ID   |       Логин         |            Пароль                  |   Статус   |" << endl;
@@ -1303,8 +1351,8 @@ void AdminMenu::sortLoginUser() {
 
 	for (size_t i = 0; i < Users.size(); i++) {
 
-		cout << "|" << setw(7) << Users[i].id << " |" << setw(20) << Users[i].login << " |" << setw(35) << Users[i].password
-			<< " |" << setw(11) << Users[i].role << " |" << endl;
+		cout << "|" << setw(7) << Users[i].get_id() << " |" << setw(20) << Users[i].get_login() << " |" << setw(35) << Users[i].get_password()
+			<< " |" << setw(11) << Users[i].get_role() << " |" << endl;
 	}
 	cout << "--------------------------------------------------------------------------------- " << endl;
 
@@ -1316,7 +1364,7 @@ void AdminMenu::sortNameFilm() {
 	Film film;
 	vector <Film> Films;
 	file.findAll(fileFilms, Films);
-	SortShell(Films, &Film::nameFilm);
+	//SortShell(Films, &Film::nameFilm); // TODO
 	cout << "Список всех фильмов:" << endl;
 	cout << "--------------------------------------------------------------------------------" << endl;
 	cout << "|       Название фильма         |      Всего мест       |   Стоимость билета   |" << endl;
@@ -1325,8 +1373,8 @@ void AdminMenu::sortNameFilm() {
 	for (size_t i = 0; i < Films.size(); i++) {
 		isResult_Find_of_film = true;
 
-		cout << "|" << setw(31) << Films[i].nameFilm << "|" << setw(23) << Films[i].place
-			<< "|" << setw(22) << Films[i].coast << "|" << endl;
+		cout << "|" << setw(31) << Films[i].get_nameFilm() << "|" << setw(23) << Films[i].get_place()
+			<< "|" << setw(22) << Films[i].get_coast() << "|" << endl;
 	}
 	cout << "--------------------------------------------------------------------------------" << endl;
 	if (!isResult_Find_of_film) {
@@ -1344,7 +1392,7 @@ void AdminMenu::sortFilmDate() {
 	file.findAll(fileFilms, Films);
 	for (size_t i = 0; i < Films.size(); i++) {
 		for (size_t j = i; j < Films.size(); j++) {
-			if (Films[i].day < Films[j].day && Films[i].month < Films[j].month && Films[i].year < Films[j].year) {
+			if (Films[i].get_date().get_day() < Films[j].get_date().get_day() && Films[i].get_date().get_month() < Films[j].get_date().get_month() && Films[i].get_date().get_year() < Films[j].get_date().get_year()) {
 				swap(Films[i], Films[j]);
 			}
 		}
@@ -1356,10 +1404,10 @@ void AdminMenu::sortFilmDate() {
 	cout << "--------------------------------------------------------------------------------------------------" << endl;
 	bool isResult_found_film = false;
 	for (size_t i = 0; i < Films.size(); i++) {
-		cout << "|" << setw(31) << Films[i].nameFilm << "|"
-			<< setw(23) << Films[i].place
-			<< "|" << setw(21) << Films[i].coast << " |"
-			<< setw(8) << Films[i].day << "." << Films[i].month << "." << Films[i].year << " |"
+		cout << "|" << setw(31) << Films[i].get_nameFilm() << "|"
+			<< setw(23) << Films[i].get_place()
+			<< "|" << setw(21) << Films[i].get_coast() << " |"
+			<< setw(8) << Films[i].get_date().get_day() << "." << Films[i].get_date().get_month() << "." << Films[i].get_date().get_year() << " |"
 			<< endl;
 		isResult_found_film = true;
 	}
@@ -1470,15 +1518,15 @@ void UserMenu::show_Free_Place_On_Film() {
 	cout << "----------------------------------------------------------------------------------------" << endl;
 
 	for (size_t i = 0; i < Films.size(); i++) {
-		file.findAll(Films[i].nameFilm + ".txt", Places);
+		file.findAll(Films[i].get_nameFilm() + ".txt", Places);
 		int countFree = 0;
 		for (size_t i = 0; i < Places.size(); i++) {
 			if (!Places[i].get_is_Free_Place()) {
 				countFree++;
 			}
 		}
-		cout << "|" << std::setw(26) << countFree << " |" << setw(27) << Films[i].nameFilm
-			<< " |" << setw(20) << Films[i].day << "." << Films[i].month << "." << Films[i].year << " |" << endl;
+		cout << "|" << std::setw(26) << countFree << " |" << setw(27) << Films[i].get_nameFilm()
+			<< " |" << setw(20) << Films[i].get_date().get_day() << "." << Films[i].get_date().get_month() << "." << Films[i].get_date().get_year() << " |" << endl;
 		Places.clear();
 	}
 
@@ -1503,7 +1551,7 @@ void UserMenu::show_my_Tickets() {
 		if (tickets[i].getLogin() == session.login) {
 			isOneFilm = true;
 			Film film = tickets[i].getfilm();
-			cout << "|" << setw(23) << film.nameFilm << " |" << setw(15) << film.place << " |" << setw(21) << film.coast << " |" << setw(5) << film.day << "." << film.month << "." << film.year << " |" << endl;
+			cout << "|" << setw(23) << film.get_nameFilm() << " |" << setw(15) << film.get_place() << " |" << setw(21) << film.get_coast() << " |" << setw(5) << film.get_date().get_day() << "." << film.get_date().get_month() << "." << film.get_date().get_year() << " |" << endl;
 		}
 	}
 	cout << "---------------------------------------------------------------------------------" << endl;
