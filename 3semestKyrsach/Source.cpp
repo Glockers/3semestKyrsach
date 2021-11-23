@@ -21,8 +21,6 @@ using namespace std;
 #define fileTickets "Tickets.txt"
 
 
-
-
 // Меню
 class UserMenu {
 public:
@@ -75,7 +73,7 @@ public:
 
 // Типы пользователей
 class User : public IShowMainMenu {
-
+	
 public:
 	string login, role, password;
 	int id;
@@ -112,44 +110,39 @@ public:
 	}
 	// method
 	void buyTicket();
+	
+	// get
+	string get_login(){
+		return this->login;
+	}
+	string get_role() {
+		return this->role;
+	}
+	string get_password() {
+		return this->password;
+	}
+	int get_id() {
+		return this->id;
+	}
+
+	//setter
+	void get_login(string login) {
+		this->login = login;
+	}
+	void get_role(string role) {
+		this->role = role;
+	}
+	void get_password(string password) {
+		this->password = password;
+	}
+	void get_id(int id) {
+		this->id = id;
+	}
+
+	friend ostream& operator<<(ostream& out, const User& user);
+	friend istream& operator>>(istream& in, User& point);
 };
-class Worker : public User {
-private:
-	void showPanelWorker() {
 
-	}
-public:
-	void showMenu() {
-		while (true) {
-			system("cls");
-			cout << "_____________________ГЛАВНОЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ / РАБОТНИКА_____________\n\n" << endl;
-			this->showPunktMenu();
-			int command;
-			command = Security::securityInt();
-			if (command == 0) {
-				this->showPanelWorker();
-			}
-			else if (command == 1) {
-
-			}
-			else if (command == 2) {
-
-			}
-			else if (command == 3) {
-
-			}
-			else if (command == 4) {
-				break;
-			}
-
-		}
-	}
-
-	void showPunktMenu() {
-		cout << "0)Панель работника\n";
-		User::showPunktMenu();
-	}
-};
 class Admin : public User {
 private:
 	void showPanelAdmin() {
@@ -333,16 +326,69 @@ FileAction file;
 
 
 // ТЗ классы
-class Place {
+class Date {
+	int day, month, year;
 public:
+	// day
+	void set_day(int day) {
+		this->day = day;
+	}
+	int get_day() {
+		return this->day;
+	}
+	// month
+	void set_month(int month) {
+		this->month = month;
+	}
+	int get_month() {
+		return this->month;
+	}
+	// year
+	void set_year(int year) {
+		this->year = year;
+	}
+	int get_year() {
+		return this->year;
+	}
+	friend istream& operator >> (istream& in, Date& p);
+	friend ostream& operator << (ostream& os, const Date& p);
+};
+
+class Place {
 	int place;
 	string login;
 	bool is_Free_Place;
+public:
+
+	int get_place() {
+		return this->place;
+	}
+	string get_login() {
+		return this->login;
+	}
+	bool get_is_Free_Place() {
+		return this->is_Free_Place;
+	}
+
+
+	void set_place(int place) {
+		this->place = place;
+	}
+	void set_login(string login) {
+		this->login = login;
+	}
+	void set_is_Free_Place(bool is_Free_Place) {
+		this->is_Free_Place = is_Free_Place;
+	}
+
 	friend ostream& operator << (ostream& os, const Place& p);
 	friend istream& operator >> (istream& in, Place& p);
+
+
 };
 
 class Film {
+
 public:
 	string nameFilm;
 	int coast;
@@ -383,14 +429,13 @@ public:
 		this->film = film;
 	}
 
-	
+
 
 
 	friend ostream& operator<<(ostream& in, const Tickets& point);
 	friend istream& operator>>(istream& out, Tickets& point);
 	friend class FileAction;
 };
-
 
 class Menu : virtual public Admin, virtual public User, virtual public AdminMenu {
 public:
@@ -491,7 +536,7 @@ int main() {
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
+// Перегрузки
 ostream& operator<<(ostream& out, const User& user)
 {
 	out << user.id << "\n" << user.login << "\n" << user.password << "\n" << user.role << endl;
@@ -540,14 +585,12 @@ void Menu::log_in_account() {
 	while (countTry > 0) {
 		SmartPointer<User> userLogin = new User;
 		SmartPointer<User> user = new User;
-		Worker worker;
 		Admin admin;
 		User userr;
 
-		IShowMainMenu* ptrUser[3];
+		IShowMainMenu* ptrUser[2];
 		ptrUser[0] = &userr;
-		ptrUser[1] = &worker;
-		ptrUser[2] = &admin;
+		ptrUser[1] = &admin;
 
 
 		system("cls");
@@ -585,12 +628,8 @@ void Menu::log_in_account() {
 			if (user->role == "USER") {
 				ptrUser[0]->showMenu();
 			}
-
-			else if (user->role == "WORKER") {
-				ptrUser[1]->showMenu();
-			}
 			else if (user->role == "ADMIN") {
-				ptrUser[2]->showMenu();
+				ptrUser[1]->showMenu();
 			}
 			session.login = "";
 			session.password = "";
@@ -704,8 +743,8 @@ void User::buyTicket() {
 	cin >> desired_film_name;
 	rewind(stdin);
 
-	
-	if (!file.findOne(fileFilms, &Film::nameFilm, desired_film_name, film) || !file.is_file_exist(desired_film_name+".txt")) {
+
+	if (!file.findOne(fileFilms, &Film::nameFilm, desired_film_name, film) || !file.is_file_exist(desired_film_name + ".txt")) {
 		cerr << "Такого фильма нет!\n";
 		return;
 	}
@@ -720,9 +759,9 @@ void User::buyTicket() {
 	cout << "Свободные места: ";
 	for (int i = 0; i < places.size(); i++)
 	{
-		if (!places[i].is_Free_Place) {
+		if (!places[i].get_is_Free_Place()) {
 			count_free_place++;
-			cout << places[i].place << " | ";
+			cout << places[i].get_place() << " | ";
 		}
 
 	};
@@ -738,25 +777,25 @@ void User::buyTicket() {
 		system("cls");
 		cout << "Выберите свободное место(выход: -1): ";
 		choosePlace = Security::securityInt() - 1;
-		if(choosePlace==-2){
+		if (choosePlace == -2) {
 			return;
 		}
 		if (choosePlace < 0 || choosePlace >(places.size()) - 1) {
 			cout << "Такого места нет!\n";
 
 		}
-		else if (places[choosePlace].is_Free_Place) {
+		else if (places[choosePlace].get_is_Free_Place()) {
 			cout << "Это место занятно!!!";
 		}
 		else {
-			places[choosePlace].is_Free_Place = true;
-			places[choosePlace].login = session.login;
+			places[choosePlace].set_is_Free_Place(true);
+			places[choosePlace].set_login(session.login);
 			file.reWrite(desired_film_name + ".txt", places);
 			break;
 		}
 		system("pause");
 	}
-	film.place = choosePlace+1;
+	film.place = choosePlace + 1;
 	ticket.set_login(session.login);
 	file.getUnicSeed(fileTickets, ticket);
 	ticket.set_film(film);
@@ -873,7 +912,7 @@ void AdminMenu::showAboutFilm() {
 	for (size_t i = 0; i < Place.size(); i++) {
 		string status;
 		string login;
-		if (Place[i].is_Free_Place) {
+		if (Place[i].get_is_Free_Place()) {
 			status = "Занято";
 			countNotFree++;
 		}
@@ -881,13 +920,13 @@ void AdminMenu::showAboutFilm() {
 			status = "Свободно";
 			countFree++;
 		}
-		if (Place[i].login == "NONE") {
+		if (Place[i].get_login() == "NONE") {
 			login = "Нет";
 		}
 		else {
-			login = Place[i].login;
+			login = Place[i].get_login();
 		}
-		cout << "|" << std::setw(26) << Place[i].place << " |" << setw(24) << status
+		cout << "|" << std::setw(26) << Place[i].get_place() << " |" << setw(24) << status
 			<< " |" << setw(28) << login << " |" << endl;
 	}
 	cout << "-------------------------------------------------------------------------------------" << endl;
@@ -898,7 +937,7 @@ void AdminMenu::showAboutFilm() {
 
 	Place.clear();
 }
-
+//void AdminMenu::showAllT
 
 
 //Two command
@@ -1138,7 +1177,6 @@ void AdminMenu::editFilmName() {
 
 	cout << "Фильм был успешно изменен.\n";
 	system("pause");
-
 }
 
 //Four command
@@ -1225,7 +1263,7 @@ void AdminMenu::deleteFilm() {
 
 			// Перезапись
 			file.reWrite(fileFilms, Films);
-			
+
 			if (!remove((desired_movie_name + ".txt").c_str())) {
 				cout << "Фильм был успешно удален!\n";
 
@@ -1246,10 +1284,10 @@ void AdminMenu::deleteFilm() {
 void AdminMenu::ShowMenuSort() {
 	system("cls");
 	void (*pArrayFunc[3]) () = { &AdminMenu::sortLoginUser ,&AdminMenu::sortNameFilm, &AdminMenu::sortFilmDate };
-
 	int length = sizeof(pArrayFunc) / sizeof(pArrayFunc[0]);
 	string menu_description = "Сортировка данных\n\n1) Сортировать пользователей по логину\n2) Сортировать название фильмов\n3) Сортировать билеты по дате\n4) Вернуться назад\n";
 	Menu::createMenu(menu_description, pArrayFunc, length);
+
 }
 void AdminMenu::sortLoginUser() {
 	system("cls");
@@ -1339,9 +1377,7 @@ void AdminMenu::sortFilmDate() {
 
 }
 
-
-
-
+// Проверки
 int Security::securityInt() {
 	int res;
 	while (!(cin >> res) || ((getchar()) != '\n')) {
@@ -1421,7 +1457,6 @@ void Security::securityDate(int& day, int& month, int& year) {
 	}
 }
 
-
 // Меню Юзера
 void UserMenu::show_Free_Place_On_Film() {
 	system("cls");
@@ -1438,7 +1473,7 @@ void UserMenu::show_Free_Place_On_Film() {
 		file.findAll(Films[i].nameFilm + ".txt", Places);
 		int countFree = 0;
 		for (size_t i = 0; i < Places.size(); i++) {
-			if (!Places[i].is_Free_Place) {
+			if (!Places[i].get_is_Free_Place()) {
 				countFree++;
 			}
 		}
@@ -1462,11 +1497,11 @@ void UserMenu::show_my_Tickets() {
 	cout << "---------------------------------------------------------------------------------" << endl;
 	cout << "|    Название фильма     |     Место      |   Стоимость билета   | Дата начала  |" << endl;
 	cout << "---------------------------------------------------------------------------------" << endl;
-	
+
 	bool isOneFilm = false;
 	for (size_t i = 0; i < tickets.size(); i++) {
 		if (tickets[i].getLogin() == session.login) {
-			 isOneFilm = true;
+			isOneFilm = true;
 			Film film = tickets[i].getfilm();
 			cout << "|" << setw(23) << film.nameFilm << " |" << setw(15) << film.place << " |" << setw(21) << film.coast << " |" << setw(5) << film.day << "." << film.month << "." << film.year << " |" << endl;
 		}
