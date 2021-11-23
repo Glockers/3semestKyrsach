@@ -422,7 +422,7 @@ public:
 	void set_date(Date date) {
 		this->date = date;
 	}
-	Date get_date() {
+	Date& get_date() {
 		return this->date;
 	}
 
@@ -584,7 +584,7 @@ istream& operator>>(istream& in, User& point)
 
 ostream& operator << (ostream& os, const Film& p)
 {
-	return os << p.nameFilm << "\n" << p.place << "\n" << p.coast << "\n" << p.date << endl;
+	return os << p.nameFilm << "\n" << p.place << "\n" << p.coast << "\n" << p.date;
 }
 istream& operator >> (istream& in, Film& p)
 {
@@ -746,6 +746,7 @@ void Menu::reg_an_account() {
 
 // FILMS
 void Film::add_New_Film() {
+	system("cls");
 	cout << "Введите название фильма: ";
 	cin >> this->nameFilm;
 	rewind(stdin);
@@ -797,6 +798,7 @@ void User::buyTicket() {
 
 	if (!file.findOne(fileFilms, &Film::get_nameFilm, desired_film_name, film) || !file.is_file_exist(desired_film_name + ".txt")) {
 		cerr << "Такого фильма нет!\n";
+		system("pause");
 		return;
 	}
 
@@ -910,7 +912,8 @@ void AdminMenu::showAllUser() {
 
 
 	}
-	cout << "--------------------------------------------------------------------------------- " << endl;
+	cout << "----------------------------------------------------------------------------------" << endl;
+
 
 	cout << endl;
 
@@ -994,18 +997,21 @@ void AdminMenu::showAllTickets() {
 
 	file.findAll(fileTickets, tickets);
 	cout << "Список всех моих билетов:" << endl;
-	cout << "---------------------------------------------------------------------------------" << endl;
-	cout << "|    Название фильма     |     Место      |   Стоимость билета   | Дата начала  |" << endl;
-	cout << "---------------------------------------------------------------------------------" << endl;
+	cout << "----------------------------------------------------------------------------------------------------" << endl;
+	cout << "|    Название фильма     |     Место      |   Логин зрителя   |  Стоимость билета   | Дата начала  |" << endl;
+	cout << "----------------------------------------------------------------------------------------------------" << endl;
 
 
 	bool isOneFilm = false;
 	for (size_t i = 0; i < tickets.size(); i++) {
 		isOneFilm = true;
 		Film film = tickets[i].getfilm();
-		cout << "|" << setw(23) << film.get_nameFilm() << " |" << setw(15) << film.get_place() << " |" << setw(21) << film.get_coast() << " |" << setw(5) << film.get_date().get_day() << "." << film.get_date().get_month() << "." << film.get_date().get_year() << " |" << endl;
+		cout << "|" << setw(23) << film.get_nameFilm() << " |" << setw(15) << film.get_place() << " |"
+			<< setw(18) << tickets[i].getLogin()<< " |"
+			<< setw(20) << film.get_coast() << " |" << setw(5) << film.get_date().get_day() << "." << film.get_date().get_month() << "." << film.get_date().get_year() << " |" << endl;
 	}
-	cout << "---------------------------------------------------------------------------------" << endl;
+	cout << "-------------------------------------------------------------------------------------------------------" << endl;
+
 
 	if (isOneFilm == false) {
 		system("cls");
@@ -1172,18 +1178,18 @@ void AdminMenu::editUserLogin() {
 	bool isResult_Find = file.findOne(fileUser, &User::get_login, desiredUser, user);
 	if (!isResult_Find) {
 		cout << "В базе данных нет такого пользователя.\n";
+		system("cls");
 		return;
 	}
 
 	cout << "Введите новый логин: ";
-	SmartPointer<User> newUser = new User;
 	string newLoginUser;
 	cin >> newLoginUser;
 	rewind(stdin);
 
 
 
-	bool isExist_new_login = file.findOne(fileUser, &User::get_login, newLoginUser, *newUser);
+	bool isExist_new_login = file.findOne(fileUser, &User::get_login, newLoginUser, user);
 	if (isExist_new_login) {
 		cout << "В базе данных уже есть пользователь с таким логином.\n";
 		system("cls");
@@ -1192,19 +1198,16 @@ void AdminMenu::editUserLogin() {
 	vector<User> users;
 	file.findAll(fileUser, users);
 	for (size_t i = 0; i < users.size(); i++) {
-		if (newUser->get_login() == users[i].get_login()) {
-			users[i].get_login() = newUser->get_login();
+		if (user.get_login() == users[i].get_login()) {
+			users[i].set_login(newLoginUser);
 			cout << "Логин успешно изменен.\n";
 			system("pause");
 			break;
 		}
 	}
 	// перезапись в файл
-	ofstream fileInput(fileUser);
-	for (size_t i = 0; i < users.size(); i++) {
-		fileInput << users[i];
-	}
-	fileInput.close();
+	file.reWrite(fileUser, users);
+
 
 	users.clear();
 }
