@@ -760,8 +760,11 @@ void Film::add_New_Film() {
 	coast = Security::securityInt();
 	system("cls");
 	cout << "¬ведите дату начала\n ";
-	
-	Security::securityDate(this->get_date().get_day(), this->month, this->year);
+	int day, month, year;
+	Security::securityDate(day, month, year);
+	this->get_date().set_day(day);
+	this->get_date().set_month(month);
+	this->get_date().set_year(year);
 
 	string nameFile = nameFilm + ".txt";
 	if (file.is_file_exist(nameFile)) {
