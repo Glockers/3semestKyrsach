@@ -76,7 +76,7 @@ class User : public IShowMainMenu {
 	string login, role, password;
 	int id;
 public:
-	
+
 
 	void showMenu() {
 		while (true) {
@@ -110,9 +110,9 @@ public:
 	}
 	// method
 	void buyTicket();
-	
+
 	// get
-	string get_login(){
+	string get_login() {
 		return this->login;
 	}
 	string get_role() {
@@ -395,7 +395,7 @@ class Film {
 		place;
 	Date date;
 public:
-	
+
 	void add_New_Film();
 
 	void set_nameFilm(string nameFilm) {
@@ -723,7 +723,7 @@ void Menu::reg_an_account() {
 
 
 	file.findOne(fileUser, &User::get_password, user.get_password(), *users);
-	if (users->get_login() != user.get_login() && users->get_password() !=  user.get_password()) {
+	if (users->get_login() != user.get_login() && users->get_password() != user.get_password()) {
 		file.getUnicSeed(fileUser, user);
 		if (user.get_id() == 0) {
 			user.get_role() = "ADMIN";
@@ -1021,7 +1021,7 @@ void AdminMenu::createUser() {
 	system("cls");
 	User user;
 	cout << "Создание новового пользователя\n\n";
-	
+
 	cout << "Введите логин пользователя: ";
 	string founded_User;
 	cin >> founded_User;
@@ -1154,9 +1154,9 @@ void AdminMenu::editUserLogin() {
 	string newLoginUser;
 	cin >> newLoginUser;
 	rewind(stdin);
-	
 
-	
+
+
 	bool isExist_new_login = file.findOne(fileUser, &User::get_login, newLoginUser, *newUser);
 	if (isExist_new_login) {
 		cout << "В базе данных уже есть пользователь с таким логином.\n";
@@ -1167,7 +1167,7 @@ void AdminMenu::editUserLogin() {
 	file.findAll(fileUser, users);
 	for (size_t i = 0; i < users.size(); i++) {
 		if (newUser->get_login() == users[i].get_login()) {
-			users[i].get_login() = newUser->get_login()  ;
+			users[i].get_login() = newUser->get_login();
 			cout << "Логин успешно изменен.\n";
 			system("pause");
 			break;
