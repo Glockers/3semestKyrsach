@@ -31,10 +31,6 @@ worker
 worker
 WORKER
 8
-superadmin
-superadmin
-ADMIN
-9
-erwer
-123456789
+test2
+123456
 USER

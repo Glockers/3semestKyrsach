@@ -686,7 +686,6 @@ void Menu::log_in_account() {
 // Регистрация
 void Menu::reg_an_account() {
 	system("cls");
-	//SmartPointer<User> user = new User;
 	SmartPointer<User> users = new User;
 	User user;
 
@@ -723,14 +722,14 @@ void Menu::reg_an_account() {
 	}
 
 
-	file.findOne(fileUser, &User::get_password, user.get_password(), *users);
+	file.findOne(fileUser, &User::get_login, user.get_login(), *users);
 	if (users->get_login() != user.get_login() && users->get_password() != user.get_password()) {
 		file.getUnicSeed(fileUser, user);
 		if (user.get_id() == 0) {
-			user.get_role() = "ADMIN";
+			user.set_role("ADMIN");
 		}
 		else {
-			user.get_role() = "USER";
+			user.set_role("USER");
 		}
 
 		file.create(fileUser, user);
@@ -741,6 +740,7 @@ void Menu::reg_an_account() {
 		cout << "Аккаунт с таким логином уже существует!\n";
 	}
 
+	system("pause");
 
 }
 
