@@ -47,6 +47,7 @@ public:
 	static void sortLoginUser();
 	static void	sortNameFilm();
 	static void	sortFilmDate();
+	static void showAllTickets();
 };
 
 // Защита информации
@@ -746,9 +747,9 @@ void Menu::reg_an_account() {
 // FILMS
 void Film::add_New_Film() {
 	cout << "Введите название фильма: ";
-	cin >> nameFilm;
+	cin >> this->nameFilm;
 	rewind(stdin);
-	if (this->nameFilm == fileUser || this->nameFilm == fileTickets || this->nameFilm == fileTickets) {
+	if (this->get_nameFilm() == fileUser || this->get_nameFilm() == fileTickets || this->get_nameFilm() == fileTickets) {
 		cout << "Файл с таким названием уже существует, введите другое название.\n";
 		system("pause");
 		return;
@@ -880,7 +881,7 @@ void AdminMenu::ShowMenuData() {
 			system("pause");
 		}
 		else if (command == 3) {
-
+			AdminMenu::showAllTickets();
 		}
 		else if (command == 4) {
 			system("cls");
@@ -987,7 +988,32 @@ void AdminMenu::showAboutFilm() {
 
 	Place.clear();
 }
-//void AdminMenu::showAllT
+void AdminMenu::showAllTickets() {
+	system("cls");
+	vector<Tickets> tickets;
+
+	file.findAll(fileTickets, tickets);
+	cout << "Список всех моих билетов:" << endl;
+	cout << "---------------------------------------------------------------------------------" << endl;
+	cout << "|    Название фильма     |     Место      |   Стоимость билета   | Дата начала  |" << endl;
+	cout << "---------------------------------------------------------------------------------" << endl;
+
+
+	bool isOneFilm = false;
+	for (size_t i = 0; i < tickets.size(); i++) {
+		isOneFilm = true;
+		Film film = tickets[i].getfilm();
+		cout << "|" << setw(23) << film.get_nameFilm() << " |" << setw(15) << film.get_place() << " |" << setw(21) << film.get_coast() << " |" << setw(5) << film.get_date().get_day() << "." << film.get_date().get_month() << "." << film.get_date().get_year() << " |" << endl;
+	}
+	cout << "---------------------------------------------------------------------------------" << endl;
+
+	if (isOneFilm == false) {
+		system("cls");
+		cout << "Билеты отстутствуют. Плохо работаете!\n";
+	}
+
+	system("pause");
+}
 
 
 //Two command
