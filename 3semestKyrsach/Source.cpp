@@ -642,7 +642,7 @@ void Menu::log_in_account() {
 		cout << "Введите Password: ";
 		string psw;
 		Security::InputPassword(psw);
-		user.set_password(psw);
+		
 
 		// Проверка
 		file.findOne(fileUser, &User::get_login, user.get_login(), user);
