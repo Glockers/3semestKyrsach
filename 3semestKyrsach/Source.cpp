@@ -1218,18 +1218,20 @@ void AdminMenu::editFilmName() {
 
 
 	cout << "Введите название фильма\n";
-	string nameFilm, newNameFilm;
-	cin >> nameFilm;
-	rewind(stdin);
-	cout << "Введите новое название фильма\n";
-	cin >> newNameFilm;
+	string current_name_film, newNameFilm;
+	cin >> current_name_film;
 	rewind(stdin);
 
-	if (!file.findOne(fileFilms, &Film::get_nameFilm, nameFilm, film) && !file.is_file_exist(nameFilm + ".txt")) {
+	// Поиск текущего фильма
+	if (!file.findOne(fileFilms, &Film::get_nameFilm, current_name_film, film) && !file.is_file_exist(current_name_film + ".txt")) {
 		cout << "Фильм не найден\n";
 		system("pause");
 		return;
 	}
+	cout << "Введите новое название фильма\n";
+	cin >> newNameFilm;
+	rewind(stdin);
+	//  
 	if (file.findOne(fileFilms, &Film::get_nameFilm, newNameFilm, film)) {
 		cout << "Такой фильм уже есть, введите другое название фильма\n";
 		system("pause");
@@ -1239,15 +1241,16 @@ void AdminMenu::editFilmName() {
 	vector<Film> films;
 	file.findAll(fileFilms, films);
 	vector<Place> Places;
-	file.findAll(nameFilm + ".txt", Places);
+	file.findAll(current_name_film + ".txt", Places);
 
 	for (size_t i = 0; i < films.size(); i++) {
-		if (films[i].get_nameFilm() == nameFilm) {
-			films[i].get_nameFilm() = newNameFilm;
+		if (films[i].get_nameFilm() == current_name_film) {
+			cout << "Фильм был успешно изменен.\n";
+			films[i].set_nameFilm(newNameFilm);
 			break;
 		}
 	}
-	if (remove((nameFilm + ".txt").c_str())) {
+	if (remove((current_name_film + ".txt").c_str())) {
 		cout << "Ошибка перезаписи файла\n";
 		system("pause");
 		return;
@@ -1255,7 +1258,6 @@ void AdminMenu::editFilmName() {
 	file.reWrite(fileFilms, films);
 	file.reWrite(newNameFilm + ".txt", Places);
 
-	cout << "Фильм был успешно изменен.\n";
 	system("pause");
 }
 
