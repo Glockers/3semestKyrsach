@@ -113,16 +113,16 @@ public:
 	void buyTicket();
 
 	// get
-	string get_login() {
+	string& get_login() {
 		return this->login;
 	}
-	string get_role() {
+	string& get_role() {
 		return this->role;
 	}
-	string get_password() {
+	string& get_password() {
 		return this->password;
 	}
-	int get_id() {
+	int& get_id() {
 		return this->id;
 	}
 
@@ -256,7 +256,7 @@ private:
 class FileAction {
 public:
 	template<class T>
-	void findAll(string nameFile, vector<T>& savedObject) {
+	void findAll(const string& nameFile, vector<T>& savedObject) {
 		ifstream fileRead(nameFile);
 		T varieable_object;
 		while (fileRead >> varieable_object) {
@@ -265,7 +265,7 @@ public:
 		fileRead.close();
 	}
 	template<class T>
-	void reWrite(string fileName, vector<T>& array) {
+	void reWrite(const string& fileName, vector<T>& array) {
 		ofstream fileWrite(fileName);
 		for (size_t i = 0; i < array.size(); i++) {
 			fileWrite << array[i];
@@ -273,7 +273,7 @@ public:
 		fileWrite.close();
 	};
 	template<class T>
-	void create(string fileName, T& object) {
+	void create(const string& fileName, T& object) {
 		fstream fileWrite(fileName, ios::app);
 		fileWrite << object;
 		fileWrite.close();
@@ -299,7 +299,7 @@ public:
 		return resultFind;
 	}
 	template <class T>
-	void getUnicSeed(string nameFile, T& obj) {
+	void getUnicSeed(const string& nameFile, T& obj) {
 		int count = 0;
 		T buffer;
 		ifstream fileRead(nameFile);
@@ -336,40 +336,39 @@ public:
 	void set_day(int day) {
 		this->day = day;
 	}
-	int get_day() {
+	int& get_day() {
 		return this->day;
 	}
 	// month
 	void set_month(int month) {
 		this->month = month;
 	}
-	int get_month() {
+	int& get_month() {
 		return this->month;
 	}
 	// year
 	void set_year(int year) {
 		this->year = year;
 	}
-	int get_year() {
+	int& get_year() {
 		return this->year;
 	}
 	friend istream& operator >> (istream& in, Date& p);
 	friend ostream& operator << (ostream& os, const Date& p);
 };
-
 class Place {
 	int place;
 	string login;
 	bool is_Free_Place;
 public:
 
-	int get_place() {
+	int& get_place() {
 		return this->place;
 	}
-	string get_login() {
+	string& get_login() {
 		return this->login;
 	}
-	bool get_is_Free_Place() {
+	bool& get_is_Free_Place() {
 		return this->is_Free_Place;
 	}
 
@@ -389,7 +388,6 @@ public:
 
 
 };
-
 class Film {
 	string nameFilm;
 	int coast,
@@ -402,21 +400,21 @@ public:
 	void set_nameFilm(string nameFilm) {
 		this->nameFilm = nameFilm;
 	}
-	string get_nameFilm() {
+	string& get_nameFilm() {
 		return this->nameFilm;
 	}
 	// coast
 	void set_coast(int coast) {
 		this->coast = coast;
 	}
-	int get_coast() {
+	int& get_coast() {
 		return this->coast;
 	}
 	// place
 	void set_place(int place) {
 		this->place = place;
 	}
-	int get_place() {
+	int& get_place() {
 		return this->place;
 	}
 	void set_date(Date date) {
@@ -439,13 +437,13 @@ public:
 	// getter
 
 
-	string getLogin() {
+	string& getLogin() {
 		return this->login;
 	}
-	Film getfilm() {
+	Film& getfilm() {
 		return this->film;
 	}
-	int getId() {
+	int& getId() {
 		return this->id;
 	}
 
@@ -467,7 +465,6 @@ public:
 	friend istream& operator>>(istream& out, Tickets& point);
 	friend class FileAction;
 };
-
 class Menu : virtual public Admin, virtual public User, virtual public AdminMenu {
 public:
 	template <class T, class T2>
@@ -498,7 +495,7 @@ public:
 		while (true) {
 			system("cls");
 			cout << menu_description;
-			cout << "Введите номер команды: ";
+			cout << "Выберите номер команды: ";
 			int command = Security::securityInt();
 			if (command < lowerLimit || command >lengthArray) {
 				cout << "Введите значение от " << lowerLimit << " до " << lengthArray << endl;
@@ -624,9 +621,8 @@ void Menu::log_in_account() {
 
 	while (countTryInputPassword > 0) {
 		SmartPointer<User> usersFromDataBase = new User;
-		//SmartPointer<User> user = new User;
 		Admin admin;
-		User userr, user;
+		User user;
 
 		IShowMainMenu* ptrUser[2];
 		ptrUser[0] = &user;
@@ -822,33 +818,34 @@ void User::buyTicket() {
 
 	if (count_free_place == 0) {
 		cout << "Свободных мест нет!\n";
+		system("pause");
 		return;
 	}
-
-	int choosePlace;
+	;
+	int selected_Place;
 	while (true) {
 		system("cls");
 		cout << "Выберите свободное место(выход: -1): ";
-		choosePlace = Security::securityInt() - 1;
-		if (choosePlace == -2) {
+		selected_Place = Security::securityInt() - 1;
+		if (selected_Place == -2) {
 			return;
 		}
-		if (choosePlace < 0 || choosePlace >(places.size()) - 1) {
+		if (selected_Place < 0 || selected_Place >(places.size()) - 1) {
 			cout << "Такого места нет!\n";
 
 		}
-		else if (places[choosePlace].get_is_Free_Place()) {
+		else if (places[selected_Place].get_is_Free_Place()) {
 			cout << "Это место занятно!!!";
 		}
 		else {
-			places[choosePlace].set_is_Free_Place(true);
-			places[choosePlace].set_login(session.login);
+			places[selected_Place].set_is_Free_Place(true);
+			places[selected_Place].set_login(session.login);
 			file.reWrite(desired_film_name + ".txt", places);
 			break;
 		}
 		system("pause");
 	}
-	film.set_place(choosePlace + 1);
+	film.set_place(selected_Place + 1);
 	ticket.set_login(session.login);
 	file.getUnicSeed(fileTickets, ticket);
 	ticket.set_film(film);
@@ -909,8 +906,6 @@ void AdminMenu::showAllUser() {
 
 		cout << "|" << setw(7) << Users[i].get_id() << " |" << setw(20) << Users[i].get_login() << " |" << setw(35) << Users[i].get_password()
 			<< " |" << setw(11) << Users[i].get_role() << " |" << endl;
-
-
 	}
 	cout << "----------------------------------------------------------------------------------" << endl;
 
@@ -1231,7 +1226,7 @@ void AdminMenu::editFilmName() {
 	cout << "Введите новое название фильма\n";
 	cin >> newNameFilm;
 	rewind(stdin);
-	//  
+	//  Поиск существующего фильма
 	if (file.findOne(fileFilms, &Film::get_nameFilm, newNameFilm, film)) {
 		cout << "Такой фильм уже есть, введите другое название фильма\n";
 		system("pause");
