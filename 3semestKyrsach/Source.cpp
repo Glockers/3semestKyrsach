@@ -15,6 +15,9 @@
 #pragma warning(disable : 4996)
 using namespace std;
 
+#define TYPE_METHOD void(Menu::*)()
+#define TYPE_FUNCTION void(*)()
+#define EXIT_FUNCTION nullptr
 
 const string fileUser = "Users.txt";
 const string fileFilms = "FilmList.txt";
@@ -255,29 +258,7 @@ private:
 // Работа с файлами
 class FileAction {
 public:
-	template<class T>
-	void findAll(const string& nameFile, vector<T>& savedObject) {
-		ifstream fileRead(nameFile);
-		T varieable_object;
-		while (fileRead >> varieable_object) {
-			savedObject.push_back(varieable_object);
-		}
-		fileRead.close();
-	}
-	template<class T>
-	void reWrite(const string& fileName, vector<T>& array) {
-		ofstream fileWrite(fileName);
-		for (size_t i = 0; i < array.size(); i++) {
-			fileWrite << array[i];
-		};
-		fileWrite.close();
-	};
-	template<class T>
-	void create(const string& fileName, T& object) {
-		fstream fileWrite(fileName, ios::app);
-		fileWrite << object;
-		fileWrite.close();
-	}
+	
 	template<class T, typename T2, class any_type>
 	bool findOne(const string& fileName, T2 T::* method, any_type value, T& savedObject) {
 		ifstream fileRead(fileName);
@@ -298,6 +279,31 @@ public:
 		fileRead.close();
 		return resultFind;
 	}
+	template<class T>
+	void findAll(const string& nameFile, vector<T>& savedObject) {
+		ifstream fileRead(nameFile);
+		T varieable_object;
+		while (fileRead >> varieable_object) {
+			savedObject.push_back(varieable_object);
+		}
+		fileRead.close();
+	}
+	
+	template<class T>
+	void reWrite(const string& fileName, vector<T>& array) {
+		ofstream fileWrite(fileName);
+		for (size_t i = 0; i < array.size(); i++) {
+			fileWrite << array[i];
+		};
+		fileWrite.close();
+	};
+	template<class T>
+	void create(const string& fileName, T& object) {
+		fstream fileWrite(fileName, ios::app);
+		fileWrite << object;
+		fileWrite.close();
+	}
+
 	template <class T>
 	void getUnicSeed(const string& nameFile, T& obj) {
 		int count = 0;
@@ -315,7 +321,6 @@ public:
 		}
 		fileRead.close();
 	}
-
 	bool is_file_exist(const string& fileName)
 	{
 		ifstream openFile(fileName);
@@ -435,8 +440,6 @@ private:
 	Film film;
 public:
 	// getter
-
-
 	string& getLogin() {
 		return this->login;
 	}
@@ -458,61 +461,61 @@ public:
 		this->film = film;
 	}
 
-
-
-
 	friend ostream& operator<<(ostream& in, const Tickets& point);
 	friend istream& operator>>(istream& out, Tickets& point);
 	friend class FileAction;
 };
 class Menu : virtual public Admin, virtual public User, virtual public AdminMenu {
+private:
+	
 public:
 	template <class T, class T2>
-	static void createMenu(string& menu_description, T2 T::* pMethod[], int lengthArray) {
-		int lowerLimit = lengthArray - lengthArray + 1;
-		lengthArray++;
+	static void createMenu(string& menu_description, vector<T2(T::*)()>& pMethod) {
+		int lengthArray = (int)pMethod.size() + 1;
+		int borderLimit = lengthArray - lengthArray + 1;
 		while (true) {
 			system("cls");
 			cout << menu_description;
 			cout << "Введите номер команды: ";
-			int command = Security::securityInt();
-			if (command < lowerLimit || command >lengthArray) {
-				cout << "Введите значение от " << 1 << " до " << lengthArray << endl;
+			size_t command = Security::securityInt();
+			if (command < borderLimit || command >=lengthArray) {
+				cout << "Введите значение от " << borderLimit << " до " << lengthArray-1 << endl;
 				system("pause");
 			}
-			else if (command == lengthArray) {
+			else if (pMethod[command-1]== EXIT_FUNCTION) {
 				break;
 			}
 			else {
 				T object;
-				(object.*pMethod[command - 1])();
+				(object.*pMethod[(command) - 1])();
 			}
 		}
 	}
-	static void createMenu(string& menu_description, void (*pMethod[])(), int lengthArray) {
+
+	template <class T>
+	static void createMenu(string& menu_description, vector<T(*)()>& pMethod) {
+		int lengthArray = (int)pMethod.size() + 1;
 		int lowerLimit = lengthArray - lengthArray + 1;
-		lengthArray++;
 		while (true) {
 			system("cls");
 			cout << menu_description;
 			cout << "Выберите номер команды: ";
-			int command = Security::securityInt();
-			if (command < lowerLimit || command >lengthArray) {
-				cout << "Введите значение от " << lowerLimit << " до " << lengthArray << endl;
+			size_t command = Security::securityInt();
+			if (command < lowerLimit || command >=lengthArray) {
+				cout << "Введите значение от " << lowerLimit << " до " << lengthArray-1 << endl;
 				system("pause");
 			}
-			else if (command == lengthArray) {
+			else if (pMethod[command - 1] == EXIT_FUNCTION) {
 				break;
 			}
 			else {
-				pMethod[command - 1]();
+				pMethod[(command) - 1]();
 			}
 		}
 	}
 
 	// Регистрация
 	void reg_an_account();
-
 	// Авторизация
 	void log_in_account();
 };
@@ -553,13 +556,11 @@ int main() {
 	SetConsoleOutputCP(1251);
 	SetConsoleCP(1251);
 	system("cls");
-	void (Menu:: * pFuncArray[])() = { &Menu::log_in_account, &Menu::reg_an_account };
-	int lengthArray = sizeof(pFuncArray) / sizeof(pFuncArray[0]);
+	vector<TYPE_METHOD> pFuncArray = { &Menu::log_in_account, &Menu::reg_an_account, EXIT_FUNCTION};
 	string menu_description = "Главное меню\n\n1) Авторизация\n2) Регистрация\n3) Выход из системы\n";
-	Menu::createMenu(menu_description, pFuncArray, lengthArray);
+	Menu::createMenu(menu_description, pFuncArray);
 	return 0;
 }
-
 
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -624,10 +625,7 @@ void Menu::log_in_account() {
 		Admin admin;
 		User user;
 
-		IShowMainMenu* ptrUser[2];
-		ptrUser[0] = &user;
-		ptrUser[1] = &admin;
-
+		IShowMainMenu* ptrUser[] = { &user ,  &admin };
 
 		system("cls");
 		cout << "Авторизация\n\n" << endl;
@@ -653,11 +651,14 @@ void Menu::log_in_account() {
 			}
 			system("pause");
 		}
+
 		else if (psw == user.get_password()) {
 			cout << "Вы вошли как " << user.get_role() << endl;
 			session.login = user.get_login();
 			session.password = user.get_password();
 			session.role = user.get_role();
+
+
 
 			system("pause");
 			system("cls");
@@ -668,6 +669,8 @@ void Menu::log_in_account() {
 			else if (user.get_role() == "ADMIN") {
 				ptrUser[1]->showMenu();
 			}
+
+
 			session.login = "";
 			session.password = "";
 			session.role = "";
@@ -1094,11 +1097,9 @@ void AdminMenu::createUser() {
 // Three command
 void AdminMenu::ShowMenuEdit() {
 	system("cls");
-
-	void (*pArrayFunc[]) () = { &AdminMenu::editUserRole ,&AdminMenu::editUserLogin, &AdminMenu::editFilmName };
-	int lengthArray = sizeof(pArrayFunc) / sizeof(pArrayFunc[0]);
+	vector<TYPE_FUNCTION> pArrayFunc = { &AdminMenu::editUserRole ,&AdminMenu::editUserLogin, &AdminMenu::editFilmName, EXIT_FUNCTION };
 	string menu_description = "Редактирование данных\n\n1) Изменить роль пользователя\n2) Изменить логин пользователя\n3) Изменить название фильма\n4) Вернуться назад\n";
-	Menu::createMenu(menu_description, pArrayFunc, lengthArray);
+	Menu::createMenu(menu_description, pArrayFunc);
 }
 void AdminMenu::editUserRole() {
 	system("cls");
@@ -1360,10 +1361,9 @@ void AdminMenu::deleteFilm() {
 //Five command
 void AdminMenu::ShowMenuSort() {
 	system("cls");
-	void (*pArrayFunc[]) () = { &AdminMenu::sortLoginUser ,&AdminMenu::sortNameFilm, &AdminMenu::sortFilmDate };
-	int length = sizeof(pArrayFunc) / sizeof(pArrayFunc[0]);
+	vector<TYPE_FUNCTION> pArrayFunc = { &AdminMenu::sortLoginUser ,&AdminMenu::sortNameFilm, &AdminMenu::sortFilmDate,EXIT_FUNCTION };
 	string menu_description = "Сортировка данных\n\n1) Сортировать пользователей по логину\n2) Сортировать название фильмов\n3) Сортировать билеты по дате\n4) Вернуться назад\n";
-	Menu::createMenu(menu_description, pArrayFunc, length);
+	Menu::createMenu(menu_description, pArrayFunc);
 
 }
 void AdminMenu::sortLoginUser() {

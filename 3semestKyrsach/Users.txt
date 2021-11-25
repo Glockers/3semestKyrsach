@@ -6,3 +6,11 @@ ADMIN
 test
 user
 USER
+2
+tester
+123456
+USER
+3
+user
+123456
+USER
