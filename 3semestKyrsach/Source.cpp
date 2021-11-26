@@ -80,8 +80,6 @@ class User : public IShowMainMenu {
 	string login, role, password;
 	int id;
 public:
-
-
 	void showMenu() {
 		while (true) {
 			system("cls");
