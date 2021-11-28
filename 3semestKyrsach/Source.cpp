@@ -118,10 +118,20 @@ public:
 	friend class FileAction;
 };
 
+class IShowMainMenu
+{
+
+public:
+	virtual void showMenu() = 0;
+	virtual void showPunktMenu() = 0;
+
+};
 
 class Guest : public User {
-public:
+private:
 	
+public:
+	void showMenu(string);
 	// Регистрация
 	void reg_an_account();
 	// Авторизация
@@ -130,23 +140,19 @@ public:
 
 };
 // Интерфейс
-class IShowMainMenu
-{
-public:
-	virtual void showMenu() = 0;
-	virtual void showPunktMenu() = 0;
-};
+
 class Client: public User, public IShowMainMenu {
 public:
-
+	Client() {
+		this->set_role("USER");
+	}
 	// Меню
 	void showMenu() {
 		while (true) {
 			system("cls");
 			cout << "_____________________ГЛАВНОЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ_____________\n\n" << endl;
 			this->showPunktMenu();
-			int command;
-			command = Security::securityInt();
+			int command = Security::securityInt();
 			if (command == 1) {
 				buyTicket();
 			}
@@ -242,6 +248,9 @@ private:
 
 	}
 public:
+	Admin() {
+		this->set_role("ADMIN");
+	}
 	void showMenu() {
 		while (true) {
 			system("cls");
@@ -275,7 +284,8 @@ public:
 class Owner: public Admin {
 public:
 	void showMenu() {
-		
+		cout << "0)Перейти в панель основателя\n";
+		Client::showPunktMenu();
 	}
 
 	
@@ -522,7 +532,6 @@ public:
 	friend class FileAction;
 };
 class Menu : public Guest, public Admin, public AdminMenu {
-
 public:
 	template <class T, class T2>
 	static void createMenu(string& menu_description, vector<T2(T::*)()>& pMethod) {
@@ -596,6 +605,7 @@ void SortShell(vector<T>& arr, T2 T::* field)
 		step /= 2;
 	}
 }
+
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -687,16 +697,13 @@ void Guest::log_in_account() {
 
 	while (countTryInputPassword > 0) {
 		SmartPointer<User> usersFromDataBase = new User;
-		Admin admin;
-		Client client;
 		User user;
-		IShowMainMenu* ptrUser[] = { &client ,  &admin };
 
 		system("cls");
 		cout << "Авторизация\n\n" << endl;
 		rewind(stdin);
 		cout << "Введите Login: ";
-		client.set_login(Security::securityString());
+		user.set_login(Security::securityString());
 		rewind(stdin);
 		cout << "Введите Password: ";
 		string psw;
@@ -705,8 +712,8 @@ void Guest::log_in_account() {
 
 		// Проверка
 		
-		file.findOne(fileUser, &Client::get_login, client.get_login(), client);
-		if (psw == "" || psw != client.get_password()) {
+		file.findOne(fileUser, &User::get_login, user.get_login(), user);
+		if (psw == "" || psw != user.get_password()) {
 			countTryInputPassword--;
 			cout << "Вы ввели неверный логин или пароль! У вас осталось " << countTryInputPassword << " попытки." << endl;
 			if (countTryInputPassword == 0) {
@@ -717,23 +724,19 @@ void Guest::log_in_account() {
 			system("pause");
 		}
 
-		else if (psw == client.get_password()) {
-			cout << "Вы вошли как " << client.get_role() << endl;
-			session.login = client.get_login();
-			session.password = client.get_password();
-			session.role = client.get_role();
+		else if (psw == user.get_password()) {
 
+			cout << "Вы вошли как " << user.get_role() << endl;
+			session.login = user.get_login();
+			session.password = user.get_password();
+			session.role = user.get_role();
 
-
+			
 			system("pause");
 			system("cls");
 
-			if (client.get_role() == "USER") {
-				ptrUser[0]->showMenu();
-			}
-			else if (client.get_role() == "ADMIN") {
-				ptrUser[1]->showMenu();
-			}
+			showMenu(user.get_role());
+
 
 
 			session.login = "";
@@ -741,6 +744,22 @@ void Guest::log_in_account() {
 			session.role = "";
 			cout << "Вы вышли из аккаунта\n";
 			system("pause");
+			break;
+		}
+
+	}
+}
+void Guest::showMenu(string roleFromDb){
+	Admin admin;
+	Client client;
+
+	vector<Client *> roleList = { &admin, &client };
+	for (int i = 0; i < roleList.size(); i++)
+	{
+		if (roleList[i]->get_role() == roleFromDb) {
+			IShowMainMenu* ptr;
+			ptr = roleList[i];
+			ptr->showMenu();
 			break;
 		}
 
@@ -849,7 +868,7 @@ void Film::add_New_Film() {
 
 };
 
-// Tickets
+// Tickets				// TODO
 void Client::buyTicket() {
 	Film film;
 	Tickets ticket;
@@ -1114,18 +1133,19 @@ void AdminMenu::ShowMenuAdd() {
 }
 void AdminMenu::createUser() {
 	system("cls");
-	User user;
+	Client client;
 	cout << "Создание новового пользователя\n\n";
 
 	cout << "Введите логин пользователя: ";
 	string founded_User;
 	cin >> founded_User;
 	rewind(stdin);
-	bool isResultFound = file.findOne(fileUser, &User::get_login, founded_User, user);
+	bool isResultFound = file.findOne(fileUser, &Client::get_login, founded_User, client.get_User());
 	if (isResultFound) {
 		cout << "Такой логин есть, придумайте другой.\n";
 		return;
 	}
+
 	cout << "Введите пароль пользователя: ";
 	string createdPassword;
 	Security::InputPassword(createdPassword);
@@ -1138,11 +1158,11 @@ void AdminMenu::createUser() {
 	while (true) {
 		int chooseRole = Security::securityInt();
 		if (chooseRole == 1) {
-			user.set_role("USER");
+			client.set_role("USER");
 			break;
 		}
 		else if (chooseRole == 2) {
-			user.set_role("ADMIN");
+			client.set_role("ADMIN");
 			break;
 		}
 		else if (chooseRole == 3) {
@@ -1152,8 +1172,11 @@ void AdminMenu::createUser() {
 			cout << "Такого варианта нет!\n";
 		}
 	}
-	file.getUnicSeed(fileUser, user);
-	file.create(fileUser, user);
+	client.set_password(createdPassword);
+	client.set_login(founded_User);
+
+	file.getUnicSeed(fileUser, client.get_User());
+	file.create(fileUser, client.get_User());
 	system("cls");
 	cout << "Вы создали нового пользователя\n";
 
