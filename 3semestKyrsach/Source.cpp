@@ -118,13 +118,10 @@ public:
 	friend class FileAction;
 };
 
-class IShowMainMenu
-{
-
+class IShowMainMenu{
 public:
 	virtual void showMenu() = 0;
 	virtual void showPunktMenu() = 0;
-
 };
 
 class Guest : public User {
