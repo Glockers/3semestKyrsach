@@ -25,11 +25,8 @@ const string fileTickets = "Tickets.txt";
 
 
 // Меню
-class UserMenu {
-public:
 
-};
-class AdminMenu : public UserMenu
+class AdminMenu
 {
 public:
 	static void ShowMenuAdd();
@@ -38,10 +35,8 @@ public:
 	static void showAllFilm();
 	static void showAllUser();
 	static void ShowMenuData();
-
 	static void createUser();
 	static void ShowMenuEdit();
-
 	static void ShowMenuSort();
 	static void sortLoginUser();
 	static void	sortNameFilm();
@@ -62,29 +57,31 @@ public:
 	static void securityDate(int& day, int& month, int& year);
 };
 
-
-
-
-
+enum Role
+{
+	USER,
+	ADMIN
+} role;
 
 // Типы пользователей
 class User {
-protected:
-	string login, role, password;
+private:
+	string login, password;
+	Role role;
 	int id;
 public:
 
 	// get
-	string& get_login() {
+	string get_login() {
 		return this->login;
 	}
-	string& get_role() {
+	Role get_role() {
 		return this->role;
 	}
-	string& get_password() {
+	string get_password() {
 		return this->password;
 	}
-	int& get_id() {
+	int get_id() {
 		return this->id;
 	}
 
@@ -92,7 +89,7 @@ public:
 	void set_login(string login) {
 		this->login = login;
 	}
-	void set_role(string role) {
+	void set_role(Role role) {
 		this->role = role;
 	}
 	void set_password(string password) {
@@ -102,7 +99,7 @@ public:
 		this->id = id;
 	}
 
-	User& get_User() {
+	User get_User() {
 		return *this;
 	};
 
@@ -112,8 +109,6 @@ public:
 
 	friend ostream& operator<<(ostream& out, const User& user);
 	friend istream& operator>>(istream& in, User& point);
-
-
 
 	friend class FileAction;
 };
@@ -125,10 +120,9 @@ public:
 };
 
 class Guest : public User {
-private:
 
 public:
-	void showMenu(string);
+	void showMenu(Role);
 	// Регистрация
 	void reg_an_account();
 	// Авторизация
@@ -141,7 +135,7 @@ public:
 class Client : public User, public IShowMainMenu {
 public:
 	Client() {
-		this->set_role("USER");
+		this->set_role(USER);
 	}
 	// Меню
 	void showMenu() {
@@ -246,7 +240,7 @@ private:
 	}
 public:
 	Admin() {
-		this->set_role("ADMIN");
+		this->set_role(ADMIN);
 	}
 	void showMenu() {
 		while (true) {
@@ -278,15 +272,6 @@ public:
 	}
 };
 
-class Owner : public Admin {
-public:
-	void showMenu() {
-		cout << "0)Перейти в панель основателя\n";
-		Client::showPunktMenu();
-	}
-
-
-};
 
 
 
@@ -323,7 +308,7 @@ public:
 		Object variable_object;
 		bool resultFind = false;
 		if (!fileRead.is_open()) {
-			cout << "Ошибка открытия файла\n";
+			cout << "Ничего не найдено\n";
 			fileRead.close();
 			return resultFind;
 		}
@@ -364,7 +349,6 @@ public:
 		fileWrite.close();
 	}
 };
-
 class FileAction : public FileSearch, public FileWrite {
 public:
 	template <class T>
@@ -430,13 +414,13 @@ class Place {
 	bool is_Free_Place;
 public:
 
-	int& get_place() {
+	int get_place() {
 		return this->place;
 	}
-	string& get_login() {
+	string get_login() {
 		return this->login;
 	}
-	bool& get_is_Free_Place() {
+	bool get_is_Free_Place() {
 		return this->is_Free_Place;
 	}
 
@@ -453,13 +437,10 @@ public:
 
 	friend ostream& operator << (ostream& os, const Place& p);
 	friend istream& operator >> (istream& in, Place& p);
-
-
 };
 class Film {
 	string nameFilm;
-	int coast,
-		place;
+	int coast,place;
 	Date date;
 public:
 
@@ -468,21 +449,21 @@ public:
 	void set_nameFilm(string nameFilm) {
 		this->nameFilm = nameFilm;
 	}
-	string& get_nameFilm() {
+	string get_nameFilm() {
 		return this->nameFilm;
 	}
 	// coast
 	void set_coast(int coast) {
 		this->coast = coast;
 	}
-	int& get_coast() {
+	int get_coast() {
 		return this->coast;
 	}
 	// place
 	void set_place(int place) {
 		this->place = place;
 	}
-	int& get_place() {
+	int get_place() {
 		return this->place;
 	}
 	void set_date(Date date) {
@@ -503,13 +484,14 @@ private:
 	Film film;
 public:
 	// getter
-	string& getLogin() {
+
+	string getLogin() {
 		return this->login;
 	}
-	Film& getfilm() {
+	Film getfilm() {
 		return this->film;
 	}
-	int& getId() {
+	int getId() {
 		return this->id;
 	}
 
@@ -528,6 +510,8 @@ public:
 	friend istream& operator>>(istream& out, Tickets& point);
 	friend class FileAction;
 };
+
+
 class Menu : public Guest, public Admin, public AdminMenu {
 public:
 	template <class T, class T2>
@@ -537,14 +521,14 @@ public:
 		while (true) {
 			system("cls");
 			cout << menu_description;
-			cout << "Введите номер команды: ";
+			cout << "Введите номер команды (-1 означает выход): ";
 			size_t command = Security::securityInt();
-			if (command < borderLimit || command >= lengthArray) {
+			if (command == -1 || pMethod[command - 1] == EXIT_FUNCTION) {
+				break;
+			}
+			else if (command < borderLimit || command >= lengthArray) {
 				cout << "Введите значение от " << borderLimit << " до " << lengthArray - 1 << endl;
 				system("pause");
-			}
-			else if (pMethod[command - 1] == EXIT_FUNCTION) {
-				break;
 			}
 			else {
 				T object;
@@ -556,18 +540,18 @@ public:
 	template <class T>
 	static void createMenu(string& menu_description, vector<T(*)()>& pMethod) {
 		int lengthArray = (int)pMethod.size() + 1;
-		int lowerLimit = lengthArray - lengthArray + 1;
+		int borderLimit = lengthArray - lengthArray + 1;
 		while (true) {
 			system("cls");
 			cout << menu_description;
-			cout << "Выберите номер команды: ";
+			cout << "Введите номер команды (-1 означает выход): ";
 			size_t command = Security::securityInt();
-			if (command < lowerLimit || command >= lengthArray) {
-				cout << "Введите значение от " << lowerLimit << " до " << lengthArray - 1 << endl;
-				system("pause");
-			}
-			else if (pMethod[command - 1] == EXIT_FUNCTION) {
+			if (command == -1 || pMethod[command - 1] == EXIT_FUNCTION) {
 				break;
+			}
+			else if (command < borderLimit || command >= lengthArray) {
+				cout << "Введите значение от " << borderLimit << " до " << lengthArray - 1 << endl;
+				system("pause");
 			}
 			else {
 				pMethod[(command)-1]();
@@ -641,15 +625,17 @@ istream& operator>>(istream& in, Client& client)
 ostream& operator<<(ostream& out, const User& user)
 {
 
-	out << user.id << "\n" << user.login << "\n" << user.password << "\n" << user.role << endl;
+	out << user.id << "\n" << user.login << "\n" << user.password << "\n" << static_cast<int>(user.role) << endl;
 	return out;
 }
 istream& operator>>(istream& in, User& point)
 {
+	int temporary;
 	in >> point.id;
 	in >> point.login;
 	in >> point.password;
-	in >> point.role;
+	in >> temporary;
+	point.role = static_cast<Role>(temporary);
 	return in;
 }
 
@@ -708,7 +694,6 @@ void Guest::log_in_account() {
 
 
 		// Проверка
-
 		file.findOne(fileUser, &User::get_login, user.get_login(), user);
 		if (psw == "" || psw != user.get_password()) {
 			countTryInputPassword--;
@@ -746,7 +731,7 @@ void Guest::log_in_account() {
 
 	}
 }
-void Guest::showMenu(string roleFromDb) {
+void Guest::showMenu(Role roleFromDb) {
 	Admin admin;
 	Client client;
 
@@ -771,8 +756,8 @@ void Guest::reg_an_account() {
 
 	cout << "РЕГИСТРАЦИЯ\n\n";
 	cout << "Введите ваш будующий логин: ";
-	string newMyLogin;
-	cin >> newMyLogin;
+	string newMyLogin = Security::securityString();
+	
 	rewind(stdin);
 	user.set_login(newMyLogin);
 	while (true) {
@@ -806,10 +791,10 @@ void Guest::reg_an_account() {
 	if (users->get_login() != user.get_login() && users->get_password() != user.get_password()) {
 		file.getUnicSeed(fileUser, user);
 		if (user.get_id() == 0) {
-			user.set_role("ADMIN");
+			user.set_role(ADMIN);
 		}
 		else {
-			user.set_role("USER");
+			user.set_role(USER);
 		}
 
 		file.create(fileUser, user);
@@ -1130,14 +1115,14 @@ void AdminMenu::ShowMenuAdd() {
 }
 void AdminMenu::createUser() {
 	system("cls");
-	Client client;
+	User user;
 	cout << "Создание новового пользователя\n\n";
 
 	cout << "Введите логин пользователя: ";
-	string founded_User;
-	cin >> founded_User;
+	string founded_User = Security::securityString();
 	rewind(stdin);
-	bool isResultFound = file.findOne(fileUser, &Client::get_login, founded_User, client.get_User());
+
+	bool isResultFound = file.findOne(fileUser, &User::get_login, founded_User, user);
 	if (isResultFound) {
 		cout << "Такой логин есть, придумайте другой.\n";
 		return;
@@ -1155,11 +1140,11 @@ void AdminMenu::createUser() {
 	while (true) {
 		int chooseRole = Security::securityInt();
 		if (chooseRole == 1) {
-			client.set_role("USER");
+			user.set_role(USER);
 			break;
 		}
 		else if (chooseRole == 2) {
-			client.set_role("ADMIN");
+			user.set_role(ADMIN);
 			break;
 		}
 		else if (chooseRole == 3) {
@@ -1169,11 +1154,11 @@ void AdminMenu::createUser() {
 			cout << "Такого варианта нет!\n";
 		}
 	}
-	client.set_password(createdPassword);
-	client.set_login(founded_User);
+	user.set_password(createdPassword);
+	user.set_login(founded_User);
 
-	file.getUnicSeed(fileUser, client.get_User());
-	file.create(fileUser, client.get_User());
+	file.getUnicSeed(fileUser, user);
+	file.create(fileUser, user);
 	system("cls");
 	cout << "Вы создали нового пользователя\n";
 
@@ -1201,16 +1186,20 @@ void AdminEditСredentials::editUserRole() {
 		system("cls");
 		return;
 	}
-	cout << "Выберите новую роль: ";
-	string bufferRole = user.get_role();
+	Role roleFromDb = user.get_role();
+
+	cout << "Выберите роль пользователя: \n";
+	cout << "1) Пользователь\n";
+	cout << "2) Администратор\n";
+	cout << "3) Отменить создание пользователя\n";
 	while (true) {
 		int chooseRole = Security::securityInt();
 		if (chooseRole == 1) {
-			user.set_role("USER");
+			user.set_role(USER);
 			break;
 		}
 		else if (chooseRole == 2) {
-			user.set_role("ADMIN");
+			user.set_role(ADMIN);
 			break;
 		}
 		else if (chooseRole == 3) {
@@ -1219,7 +1208,7 @@ void AdminEditСredentials::editUserRole() {
 		else {
 			cout << "Такого варианта нет!\n";
 		}
-		if (bufferRole == user.get_role()) {
+		if (roleFromDb == user.get_role()) {
 			cout << "У пользователя уже и есть такая роль. Выберите другую или отмените редактирование.\n";
 			system("pause");
 		}
@@ -1229,7 +1218,7 @@ void AdminEditСredentials::editUserRole() {
 	file.findAll(fileUser, users);
 	for (size_t i = 0; i < users.size(); i++) {
 		if (users[i].get_login() == user.get_login()) {
-			users[i].get_role() = user.get_role();
+			users[i].set_role(user.get_role());
 			cout << "Роль успешно успешно изменена.\n";
 			system("pause");
 			break;
@@ -1384,7 +1373,7 @@ void AdminDeleteСredentials::deleteUser() {
 	file.findAll(fileUser, Users);
 	bool is_Find_User = false;
 	for (size_t i = 0; i < Users.size(); i++) {
-		if (Users[i].get_login() == loginUser && Users[i].get_role() == "ADMIN") {
+		if (Users[i].get_login() == loginUser && Users[i].get_role() == ADMIN) {
 			is_Find_User = true;
 			cout << "Вы не можете удалить администратора!\n";
 			break;
@@ -1563,6 +1552,7 @@ string Security::securityString() {
 				cout << "Введите еще раз: ";
 				break;
 			}
+			
 		}
 		if (flag == 0) break;
 	}
