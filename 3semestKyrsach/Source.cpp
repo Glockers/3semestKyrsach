@@ -110,7 +110,7 @@ public:
 	friend ostream& operator<<(ostream& out, const User& user);
 	friend istream& operator>>(istream& in, User& point);
 
-	friend class FileAction;
+	friend class Database;
 };
 
 class IShowMainMenu {
@@ -119,6 +119,7 @@ public:
 	virtual void showPunktMenu() = 0;
 };
 
+// Ğîëè
 class Guest : public User {
 
 public:
@@ -127,11 +128,8 @@ public:
 	void reg_an_account();
 	// Àâòîğèçàöèÿ
 	void log_in_account();
-	friend class FileAction;
 
 };
-// Èíòåğôåéñ
-
 class Client : public User, public IShowMainMenu {
 public:
 	Client() {
@@ -167,28 +165,16 @@ public:
 	}
 
 	static void buyTicket();
+
 	static void show_Free_Place_On_Film();
 	static void show_my_Tickets();
 
+
+
 	friend istream& operator>>(istream& in, Client& client);
 	friend ostream& operator<<(ostream& out, Client& client);
-	friend class FileAction;
 };
-
-
-class AdminDeleteÑredentials {
-public:
-	static void deleteFilm();
-	static void deleteUser();
-};
-class AdminEditÑredentials {
-public:
-
-	static void editUserRole();
-	static void	editUserLogin();
-	static void editFilmName();
-};
-class Admin : public Client, public AdminDeleteÑredentials, public AdminEditÑredentials {
+class Admin: public Client{
 private:
 	void showPanelAdmin() {
 		while (true)
@@ -270,6 +256,17 @@ public:
 		cout << "0)Ïåğåéòè â ïàíåëü àäìèíèñòğàòîğà\n";
 		Client::showPunktMenu();
 	}
+
+
+	
+
+
+	static void deleteFilm();
+	static void deleteUser();
+
+	static void editUserRole();
+	static void	editUserLogin();
+	static void editFilmName();
 };
 
 
@@ -300,7 +297,9 @@ private:
 };
 
 // Ğàáîòà ñ ôàéëàìè
-class FileSearch {
+
+
+class Database{
 public:
 	template<class Object, class TypeMethod, class any_type>
 	bool findOne(const string& fileName, TypeMethod Object::* method, any_type value, Object& object) {
@@ -331,11 +330,10 @@ public:
 		}
 		fileRead.close();
 	}
-};
-class FileWrite {
-public:
+
+
 	template<class T>
-	void reWrite(const string& fileName, vector<T>& array) {
+	void update(const string& fileName, vector<T>& array) {
 		ofstream fileWrite(fileName);
 		for (size_t i = 0; i < array.size(); i++) {
 			fileWrite << array[i];
@@ -348,9 +346,7 @@ public:
 		fileWrite << object;
 		fileWrite.close();
 	}
-};
-class FileAction : public FileSearch, public FileWrite {
-public:
+
 	template <class T>
 	void getUnicSeed(const string& nameFile, T& obj) {
 		int count = 0;
@@ -376,7 +372,7 @@ public:
 		return isOpen;
 	};
 };
-FileAction file;
+Database file;
 
 
 
@@ -478,7 +474,6 @@ public:
 	friend class Tickets;
 };
 class Tickets {
-private:
 	string login;
 	int id;
 	Film film;
@@ -508,7 +503,7 @@ public:
 
 	friend ostream& operator<<(ostream& in, const Tickets& point);
 	friend istream& operator>>(istream& out, Tickets& point);
-	friend class FileAction;
+	friend class Database;
 };
 
 
@@ -909,7 +904,7 @@ void Client::buyTicket() {
 		else {
 			places[selected_Place].set_is_Free_Place(true);
 			places[selected_Place].set_login(session.login);
-			file.reWrite(desired_film_name + ".txt", places);
+			file.update(desired_film_name + ".txt", places);
 			break;
 		}
 		system("pause");
@@ -1167,11 +1162,11 @@ void AdminMenu::createUser() {
 // Three command
 void AdminMenu::ShowMenuEdit() {
 	system("cls");
-	vector<TYPE_FUNCTION> pArrayFunc = { &Admin::AdminEditÑredentials::editUserRole ,&Admin::AdminEditÑredentials::editUserLogin, &Admin::AdminEditÑredentials::editFilmName, EXIT_FUNCTION };
+	vector<TYPE_FUNCTION> pArrayFunc = { &Admin::editUserRole ,&Admin::editUserLogin, &Admin::editFilmName, EXIT_FUNCTION };
 	string menu_description = "Ğåäàêòèğîâàíèå äàííûõ\n\n1) Èçìåíèòü ğîëü ïîëüçîâàòåëÿ\n2) Èçìåíèòü ëîãèí ïîëüçîâàòåëÿ\n3) Èçìåíèòü íàçâàíèå ôèëüìà\n4) Âåğíóòüñÿ íàçàä\n";
 	Menu::createMenu(menu_description, pArrayFunc);
 }
-void AdminEditÑredentials::editUserRole() {
+void Admin::editUserRole() {
 	system("cls");
 	User user;
 	cout << "Ğåäàêòèğîâàíèå ğîëè ïîëüçîâàòåëÿ\n\n";
@@ -1235,7 +1230,7 @@ void AdminEditÑredentials::editUserRole() {
 
 
 }
-void AdminEditÑredentials::editUserLogin() {
+void Admin::editUserLogin() {
 	system("cls");
 	User user;
 	cout << "Ğåäàêòèğîâàíèå ëîãèíà ïîëüçîâàòåëÿ\n\n";
@@ -1276,12 +1271,12 @@ void AdminEditÑredentials::editUserLogin() {
 		}
 	}
 	// ïåğåçàïèñü â ôàéë
-	file.reWrite(fileUser, users);
+	file.update(fileUser, users);
 
 
 	users.clear();
 }
-void AdminEditÑredentials::editFilmName() {
+void Admin::editFilmName() {
 	system("cls");
 	Film film;
 	Place place;
@@ -1325,8 +1320,8 @@ void AdminEditÑredentials::editFilmName() {
 		system("pause");
 		return;
 	}
-	file.reWrite(fileFilms, films);
-	file.reWrite(newNameFilm + ".txt", Places);
+	file.update(fileFilms, films);
+	file.update(newNameFilm + ".txt", Places);
 
 	system("pause");
 }
@@ -1344,12 +1339,12 @@ void AdminMenu::ShowMenuDelete() {
 		int command = Security::securityInt();
 		if (command == 1) {
 			system("cls");
-			AdminDeleteÑredentials::deleteUser();
+			Admin::deleteUser();
 			system("pause");
 		}
 		else if (command == 2) {
 			system("cls");
-			AdminDeleteÑredentials::deleteFilm();
+			Admin::deleteFilm();
 			system("pause");
 		}
 		else if (command == 3) {
@@ -1358,7 +1353,7 @@ void AdminMenu::ShowMenuDelete() {
 
 	}
 }
-void AdminDeleteÑredentials::deleteUser() {
+void Admin::deleteUser() {
 	vector<User> Users;
 	string loginUser;
 	cout << "Óäàëåíèå ïîëüçîâàòåëÿ\n\n";
@@ -1378,15 +1373,11 @@ void AdminDeleteÑredentials::deleteUser() {
 			cout << "Âû íå ìîæåòå óäàëèòü àäìèíèñòğàòîğà!\n";
 			break;
 		}
-		if (Users[i].get_login() == loginUser && Users[i].get_login() != "ADMIN") {
+		if (Users[i].get_login() == loginUser && Users[i].get_role() != ADMIN) {
 			Users.erase(Users.begin() + i);
 			is_Find_User = true;
 			// Ïåğåçàïèñü
-			ofstream fileInput(fileUser);
-			for (size_t i = 0; i < Users.size(); i++) {
-				fileInput << Users[i];
-			}
-			fileInput.close();
+			file.update(fileUser, Users);
 			cout << "Ïîëüçîâàòåëü áûë óñïåøíî óäàëåí!\n";
 			break;
 		}
@@ -1395,7 +1386,7 @@ void AdminDeleteÑredentials::deleteUser() {
 		cout << "Ïîëüçîâàòåëü " << loginUser << " íå áûë íàéäåí.\n";
 	}
 }
-void AdminDeleteÑredentials::deleteFilm() {
+void Admin::deleteFilm() {
 	vector<Film> Films;
 	string desired_movie_name;
 
@@ -1414,7 +1405,7 @@ void AdminDeleteÑredentials::deleteFilm() {
 			is_One_foun_film = true;
 
 			// Ïåğåçàïèñü
-			file.reWrite(fileFilms, Films);
+			file.update(fileFilms, Films);
 
 			if (!remove((desired_movie_name + ".txt").c_str())) {
 				cout << "Ôèëüì áûë óñïåøíî óäàëåí!\n";
@@ -1667,4 +1658,6 @@ void Client::show_my_Tickets() {
 	cout << endl;
 	system("pause");
 }
+
+
 
