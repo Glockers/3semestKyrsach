@@ -23,6 +23,7 @@ const string fileUser = "Users.txt";
 const string fileFilms = "FilmList.txt";
 const string fileTickets = "Tickets.txt";
 
+class Tickets;
 
 // Меню
 
@@ -35,7 +36,6 @@ public:
 	static void showAllFilm();
 	static void showAllUser();
 	static void ShowMenuData();
-	static void createUser();
 	static void ShowMenuEdit();
 	static void ShowMenuSort();
 	static void sortLoginUser();
@@ -76,7 +76,7 @@ public:
 		return this->login;
 	}
 	Role get_role() {
-		return this->role;
+		return role;
 	}
 	string get_password() {
 		return this->password;
@@ -131,7 +131,11 @@ public:
 
 };
 class Client : public User, public IShowMainMenu {
+protected:
+	
+	vector<Tickets> tickets;
 public:
+	
 	Client() {
 		this->set_role(USER);
 	}
@@ -165,9 +169,8 @@ public:
 	}
 
 	static void buyTicket();
-
 	static void show_Free_Place_On_Film();
-	static void show_my_Tickets();
+	void show_my_Tickets();
 
 
 
@@ -258,8 +261,9 @@ public:
 	}
 
 
-	
 
+	void add_Film();
+	static void createUser();
 
 	static void deleteFilm();
 	static void deleteUser();
@@ -276,7 +280,7 @@ public:
 struct SessionHandler {
 	string login;
 	string password;
-	string role;
+	Role role;
 }session;
 
 // Умные указатели
@@ -297,7 +301,6 @@ private:
 };
 
 // Работа с файлами
-
 
 class Database{
 public:
@@ -330,8 +333,6 @@ public:
 		}
 		fileRead.close();
 	}
-
-
 	template<class T>
 	void update(const string& fileName, vector<T>& array) {
 		ofstream fileWrite(fileName);
@@ -419,7 +420,7 @@ public:
 	bool get_is_Free_Place() {
 		return this->is_Free_Place;
 	}
-
+	  
 
 	void set_place(int place) {
 		this->place = place;
@@ -440,7 +441,6 @@ class Film {
 	Date date;
 public:
 
-	void add_New_Film();
 
 	void set_nameFilm(string nameFilm) {
 		this->nameFilm = nameFilm;
@@ -468,6 +468,30 @@ public:
 	Date& get_date() {
 		return this->date;
 	}
+
+	void fillData() {
+		system("cls");
+		cout << "Введите название фильма: ";
+		cin >> this->nameFilm;
+		rewind(stdin);
+		if (this->get_nameFilm() == fileUser || this->get_nameFilm() == fileTickets) {
+			cout << "Файл с таким названием уже существует, введите другое название.\n";
+			system("pause");
+			return;
+		}
+		cout << "Введите количество мест: ";
+		place = Security::securityInt();
+
+		cout << "Введите стоимость билета: ";
+		coast = Security::securityInt();
+		system("cls");
+		cout << "Введите дату начала\n ";
+		int day, month, year;
+		Security::securityDate(day, month, year);
+		this->get_date().set_day(day);
+		this->get_date().set_month(month);
+		this->get_date().set_year(year);
+	};
 
 	friend ostream& operator << (ostream& os, const Film& film);
 	friend istream& operator >> (istream& in, Film& film);
@@ -518,12 +542,15 @@ public:
 			cout << menu_description;
 			cout << "Введите номер команды (-1 означает выход): ";
 			size_t command = Security::securityInt();
-			if (command == -1 || pMethod[command - 1] == EXIT_FUNCTION) {
+			if (command == -1) {
 				break;
 			}
 			else if (command < borderLimit || command >= lengthArray) {
 				cout << "Введите значение от " << borderLimit << " до " << lengthArray - 1 << endl;
 				system("pause");
+			}
+			else if (pMethod[command - 1] == EXIT_FUNCTION) {
+				break;
 			}
 			else {
 				T object;
@@ -541,12 +568,15 @@ public:
 			cout << menu_description;
 			cout << "Введите номер команды (-1 означает выход): ";
 			size_t command = Security::securityInt();
-			if (command == -1 || pMethod[command - 1] == EXIT_FUNCTION) {
+			if (command == -1) {
 				break;
 			}
 			else if (command < borderLimit || command >= lengthArray) {
 				cout << "Введите значение от " << borderLimit << " до " << lengthArray - 1 << endl;
 				system("pause");
+			}
+			else if (pMethod[command - 1] == EXIT_FUNCTION) {
+				break;   
 			}
 			else {
 				pMethod[(command)-1]();
@@ -718,7 +748,7 @@ void Guest::log_in_account() {
 
 			session.login = "";
 			session.password = "";
-			session.role = "";
+			session.role;
 			cout << "Вы вышли из аккаунта\n";
 			system("pause");
 			break;
@@ -805,42 +835,24 @@ void Guest::reg_an_account() {
 }
 
 // FILMS
-void Film::add_New_Film() {
-	system("cls");
-	cout << "Введите название фильма: ";
-	cin >> this->nameFilm;
-	rewind(stdin);
-	if (this->get_nameFilm() == fileUser || this->get_nameFilm() == fileTickets || this->get_nameFilm() == fileTickets) {
-		cout << "Файл с таким названием уже существует, введите другое название.\n";
-		system("pause");
-		return;
-	}
-	cout << "Введите количество мест: ";
-	place = Security::securityInt();
+void Admin::add_Film() {
+	
+	Film film;
+	film.fillData();
 
-	cout << "Введите стоимость билета: ";
-	coast = Security::securityInt();
-	system("cls");
-	cout << "Введите дату начала\n ";
-	int day, month, year;
-	Security::securityDate(day, month, year);
-	this->get_date().set_day(day);
-	this->get_date().set_month(month);
-	this->get_date().set_year(year);
-
-	string nameFile = nameFilm + ".txt";
+	string nameFile = film.get_nameFilm() + ".txt";
 	if (file.is_file_exist(nameFile)) {
 		cout << "Такой фильм уже существует!\n";
 		return;
 	};
 
 	ofstream inFile(nameFile);
-	for (int i = 1; i <= place; i++) {
+	for (int i = 1; i <= film.get_place(); i++) {
 		inFile << i << "\n" << false << "\n" << "NONE\n";
 	}
 	inFile.close();
 
-	file.create(fileFilms, *this);
+	file.create(fileFilms, film);
 	cout << "Фильм успешно добавлен\n";
 
 };
@@ -1092,14 +1104,14 @@ void AdminMenu::ShowMenuAdd() {
 		cout << "3) Вернуться назад\n\n";
 
 		cout << ">>> ";
+		Admin admin;
 		int command = Security::securityInt();
 		if (command == 1) {
-			createUser();
+			admin.createUser();
 			system("pause");
 		}
 		else if (command == 2) {
-			Film film;
-			film.add_New_Film();
+			admin.add_Film();
 			system("pause");
 		}
 		else if (command == 3) {
@@ -1108,7 +1120,7 @@ void AdminMenu::ShowMenuAdd() {
 
 	}
 }
-void AdminMenu::createUser() {
+void Admin::createUser() {
 	system("cls");
 	User user;
 	cout << "Создание новового пользователя\n\n";
@@ -1633,7 +1645,6 @@ void Client::show_my_Tickets() {
 	system("cls");
 	cout << "Мои билеты\n\n";
 
-	vector<Tickets> tickets;
 	file.findAll(fileTickets, tickets);
 
 	cout << "Список всех моих билетов:" << endl;
@@ -1657,7 +1668,7 @@ void Client::show_my_Tickets() {
 	}
 	cout << endl;
 	system("pause");
+	tickets.clear();
 }
-
 
 
