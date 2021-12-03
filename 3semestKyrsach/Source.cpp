@@ -882,7 +882,7 @@ void Client::buyTicket() {
 
 	int count_free_place = 0;
 	cout << "Свободные места: ";
-	for (int i = 0; i < places.size(); i++)
+	for (size_t i = 0; i < places.size(); i++)
 	{
 		if (!places[i].get_is_Free_Place()) {
 			count_free_place++;
