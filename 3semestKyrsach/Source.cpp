@@ -15,6 +15,8 @@
 #pragma warning(disable : 4996)
 using namespace std;
 
+
+// препроцессирование
 #define TYPE_METHOD void(Menu::*)()
 #define TYPE_FUNCTION void(*)()
 #define EXIT_FUNCTION nullptr
