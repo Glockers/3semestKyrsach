@@ -18,41 +18,11 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Admin.cpp" />
-    <ClCompile Include="AdminMenu.cpp" />
-    <ClCompile Include="Client.cpp" />
-    <ClCompile Include="ClientMenu.cpp" />
-    <ClCompile Include="Guest.cpp" />
-    <ClCompile Include="GuestMenu.cpp" />
-    <ClCompile Include="IShowMainMenu.cpp" />
-    <ClCompile Include="Security.cpp" />
-    <ClCompile Include="SmartMenu.cpp" />
-    <ClCompile Include="SmartPointer.cpp" />
-    <ClCompile Include="Source.cpp" />
-    <ClCompile Include="Tickets.cpp" />
-    <ClCompile Include="User.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Admin.h" />
-    <ClInclude Include="AdminMenu.h" />
-    <ClInclude Include="Client.h" />
-    <ClInclude Include="ClientMenu.h" />
-    <ClInclude Include="Database.h" />
-    <ClInclude Include="Guest.h" />
-    <ClInclude Include="GuestMenu.h" />
-    <ClInclude Include="IShowMainMenu.h" />
-    <ClInclude Include="Security.h" />
-    <ClInclude Include="SmartMenu.h" />
-    <ClInclude Include="SmartPointer.h" />
-    <ClInclude Include="Tickets.h" />
-    <ClInclude Include="User.h" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{8765a496-79e5-445e-b93f-5d36f0579b8c}</ProjectGuid>
-    <RootNamespace>Kyrsach</RootNamespace>
+    <ProjectGuid>{81f57e27-cc27-48c6-a7ac-19fe725b7fdb}</ProjectGuid>
+    <RootNamespace>Nikitos</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -168,6 +138,15 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Source.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Header.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

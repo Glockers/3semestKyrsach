@@ -1,10 +1,10 @@
 #include "Database.h"
 #include "Guest.h"
 #include <Windows.h>
-#include "SmartMenu.h"
+
 Database db;
 #define TYPE_METHOD void(SmartMenu::*)()
-
+class SmartMenu;
 
 
 int main() {

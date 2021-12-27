@@ -4,6 +4,8 @@
 #include "Security.h"
 #include "Database.h"
 #include <Windows.h>
+#include "AdminMenu.h"
+
 
 #define fileUser "Users.txt"
 #define fileFilms "FilmList.txt"

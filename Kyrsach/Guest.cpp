@@ -1,5 +1,6 @@
 #include "Guest.h"
 
+
 // Авторизация
 void Guest::log_in_account() {
 	int countTryInputPassword = 3;
@@ -34,16 +35,28 @@ void Guest::log_in_account() {
 
 		else if (psw == user.get_password()) {
 
-			cout << "Вы вошли как " << user.get_role() << endl;
 			/*session.login = user.get_login();
 			session.password = user.get_password();
 			session.role = user.get_role();*/
+			ClientMenu clientMenu;
+			AdminMenu adminMenu;
 
+
+			vector<IShowMainMenu*> menu = {&clientMenu,&adminMenu};
+
+			if (user.get_role() == USER) {
+				cout << "Добро пожаловать!\n" << endl;
+			}
+			else if (user.get_role() == ADMIN) {
+				cout << "Вы авторизовались как администратор.\n" << endl;
+			}
+
+			menu[user.get_role()]->selectCommand();
 
 			system("pause");
 			system("cls");
 
-			showMenu(user.get_role());
+			//showMenu(user.get_role());
 
 
 

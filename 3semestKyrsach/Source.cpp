@@ -17,7 +17,7 @@ using namespace std;
 
 
 // препроцессирование
-#define TYPE_METHOD void(Menu::*)()
+#define TYPE_METHOD void(SmartMenu::*)()
 #define TYPE_FUNCTION void(*)()
 #define EXIT_FUNCTION nullptr
 
@@ -26,12 +26,47 @@ const string fileFilms = "FilmList.txt";
 const string fileTickets = "Tickets.txt";
 
 class Tickets;
-
-// Меню
-
-class AdminMenu
+enum Role
 {
+	USER,
+	ADMIN
+} role;
+// Меню
+class IMenu {
 public:
+	virtual void showMenu() = 0;
+	virtual void showPunktMenu() = 0;
+	virtual Role get_status() = 0;
+	virtual bool showChecks(int command) = 0;
+};
+class ClientMenu : public IMenu {
+protected:
+	Role status;
+public:
+	ClientMenu() {
+		this->status = USER;
+	}
+	Role get_status() {
+		return this->status;
+	}
+	bool showChecks(int command) override;
+	void showMenu() override;
+	void showPunktMenu() override;
+};
+class AdminMenu : public ClientMenu
+{
+private:
+	void showPanelAdmin();
+public:
+	AdminMenu() {
+		this->status = ADMIN;
+	}
+	// Главное меню
+	void showMenu() override;
+	void showPunktMenu() override;
+	bool showChecks(int command) override;
+
+	// Остальные меню
 	static void ShowMenuAdd();
 	static void ShowMenuDelete();
 	static void showAboutFilm();
@@ -44,6 +79,9 @@ public:
 	static void	sortNameFilm();
 	static void	sortFilmDate();
 	static void showAllTickets();
+
+
+	void searchUser();
 };
 
 // Защита информации
@@ -59,13 +97,9 @@ public:
 	static void securityDate(int& day, int& month, int& year);
 };
 
-enum Role
-{
-	USER,
-	ADMIN
-} role;
 
-// Типы пользователей
+
+// Все пользователи
 class User {
 private:
 	string login, password;
@@ -101,168 +135,42 @@ public:
 		this->id = id;
 	}
 
-	User get_User() {
-		return *this;
-	};
 
-	void set_User(User user) {
-		*this = user;
-	}
+
 
 	friend ostream& operator<<(ostream& out, const User& user);
 	friend istream& operator>>(istream& in, User& point);
 
 	friend class Database;
 };
-
-class IShowMainMenu {
-public:
-	virtual void showMenu() = 0;
-	virtual void showPunktMenu() = 0;
-};
-
 // Роли
 class Guest : public User {
-
 public:
-	void showMenu(Role);
+	void checkRole(Role);
 	// Регистрация
 	void reg_an_account();
 	// Авторизация
 	void log_in_account();
 
 };
-class Client : public User, public IShowMainMenu {
+class Client : public User {
 protected:
-	
 	vector<Tickets> tickets;
 public:
-	
-	Client() {
-		this->set_role(USER);
-	}
-	// Меню
-	void showMenu() {
-		while (true) {
-			system("cls");
-			cout << "_____________________ГЛАВНОЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ_____________\n\n" << endl;
-			this->showPunktMenu();
-			int command = Security::securityInt();
-			if (command == 1) {
-				buyTicket();
-			}
-			else if (command == 2) {
-				Client::show_Free_Place_On_Film();
-			}
-			else if (command == 3) {
-				Client::show_my_Tickets();
-			}
-			else if (command == 4) {
-				break;
-			}
-		}
-	}
-	void showPunktMenu() {
-		cout << "1)Купить билет\n";
-		cout << "2)Посмотреть свободные места на фильм\n";
-		cout << "3)Мои билеты\n";
-		cout << "4)Выйти из аккаунта\n";
-		cout << ">>> ";
-	}
 
+	Client();
 	static void buyTicket();
 	static void show_Free_Place_On_Film();
 	void show_my_Tickets();
 
-
-
 	friend istream& operator>>(istream& in, Client& client);
 	friend ostream& operator<<(ostream& out, Client& client);
 };
-class Admin: public Client{
+class Admin : public Client {
 private:
-	void showPanelAdmin() {
-		while (true)
-		{
-			system("cls");
-			cout << "_____________________ГЛАВНОЕ МЕНЮ АДМИНИСТРАТОРА_____________\n\n" << endl;
 
-			cout << "Главное меню\n\n";
-			cout << "1) Отобразить список\n";
-			cout << "2) Добавить данные\n";
-			cout << "3) Редактировать данные\n";
-			cout << "4) Удалить данные\n";
-			cout << "5) Соритровка данных\n";
-			cout << "6) Войти в пользовательский режим\n";
-			cout << "7) Выйти из cистемы\n";
-			cout << "Введите номер команды: ";
-			int command = Security::securityInt();
-			if (command == 1) {
-				AdminMenu::ShowMenuData();
-			}
-			else if (command == 2) {
-				AdminMenu::ShowMenuAdd();
-			}
-			else if (command == 3)
-			{
-				AdminMenu::ShowMenuEdit();
-			}
-			else if (command == 4)
-			{
-				AdminMenu::ShowMenuDelete();
-			}
-			else if (command == 5)
-			{
-				AdminMenu::ShowMenuSort();
-			}
-			else if (command == 6)
-			{
-				break;
-			}
-			else if (command == 7) // Выход из аккаунта
-			{
-				system("cls");
-				cout << "Вы вышли из системы\n";
-				exit(1);
-			}
-
-		}
-
-	}
 public:
-	Admin() {
-		this->set_role(ADMIN);
-	}
-	void showMenu() {
-		while (true) {
-			system("cls");
-			cout << "_____________________ГЛАВНОЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ / АДМИНА_____________\n\n" << endl;
-			this->showPunktMenu();
-			int command = Security::securityInt();
-			if (command == 0) {
-				this->showPanelAdmin();
-			}
-			else if (command == 1) {
-				Client::buyTicket();
-			}
-			else if (command == 2) {
-				Client::show_Free_Place_On_Film();
-			}
-			else if (command == 3) {
-				Client::show_my_Tickets();
-			}
-			else if (command == 4) {
-				return;
-			}
-
-		}
-	}
-	void showPunktMenu() {
-		cout << "0)Перейти в панель администратора\n";
-		Client::showPunktMenu();
-	}
-
-
+	Admin();
 
 	void add_Film();
 	static void createUser();
@@ -283,28 +191,14 @@ struct SessionHandler {
 	string login;
 	string password;
 	Role role;
-}session;
+} session;
 
 // Умные указатели
-template <class T>
-class SmartPointer {
-public:
-	SmartPointer(T* ptr) {
-		this->ptr = ptr;
-	}
-	~SmartPointer() {
-		delete ptr;
-	}
 
-	T& operator*() const { return *ptr; }
-	T* operator->() const { return ptr; }
-private:
-	T* ptr = nullptr;
-};
 
 // Работа с файлами
-
-class Database{
+class Database {
+	int static result;
 public:
 	template<class Object, class TypeMethod, class any_type>
 	bool findOne(const string& fileName, TypeMethod Object::* method, any_type value, Object& object) {
@@ -379,7 +273,81 @@ Database file;
 
 
 
+namespace Smart {
+	template <class T>
+	class SmartPointer {
+	public:
+		SmartPointer(T* ptr) {
+			this->ptr = ptr;
+		}
+		~SmartPointer() {
+			delete ptr;
+		}
+
+		T& operator*() const { return *ptr; }
+		T* operator->() const { return ptr; }
+	private:
+		T* ptr = nullptr;
+	};
+	class SmartMenu : virtual public Guest, virtual public Admin, virtual public AdminMenu {
+	public:
+		template <class T, class T2>
+		static void createMenu(string& menu_description, vector<T2(T::*)()>& pMethod) {
+			int lengthArray = (int)pMethod.size() + 1;
+			int borderLimit = lengthArray - lengthArray + 1;
+			while (true) {
+				system("cls");
+				cout << menu_description;
+				cout << "Введите номер команды (-1 означает выход): ";
+				size_t command = Security::securityInt();
+				if (command == -1) {
+					break;
+				}
+				else if (command < borderLimit || command >= lengthArray) {
+					cout << "Введите значение от " << borderLimit << " до " << lengthArray - 1 << endl;
+					system("pause");
+				}
+				else if (pMethod[command - 1] == EXIT_FUNCTION) {
+					break;
+				}
+				else {
+					T object;
+					(object.*pMethod[(command)-1])();
+				}
+			}
+		}
+
+		template <class T>
+		static void createMenu(string& menu_description, vector<T(*)()>& pMethod) {
+			int lengthArray = (int)pMethod.size() + 1;
+			int borderLimit = lengthArray - lengthArray + 1;
+			while (true) {
+				system("cls");
+				cout << menu_description;
+				cout << "Введите номер команды (-1 означает выход): ";
+				size_t command = Security::securityInt();
+				if (command == -1) {
+					break;
+				}
+				else if (command < borderLimit || command >= lengthArray) {
+					cout << "Введите значение от " << borderLimit << " до " << lengthArray - 1 << endl;
+					system("pause");
+				}
+				else if (pMethod[command - 1] == EXIT_FUNCTION) {
+					break;
+				}
+				else {
+					pMethod[(command)-1]();
+				}
+			}
+		}
+	};
+}
+using namespace Smart;
+
+
 // ТЗ классы
+
 class Date {
 	int day, month, year;
 public:
@@ -422,7 +390,7 @@ public:
 	bool get_is_Free_Place() {
 		return this->is_Free_Place;
 	}
-	  
+
 
 	void set_place(int place) {
 		this->place = place;
@@ -438,8 +406,9 @@ public:
 	friend istream& operator >> (istream& in, Place& p);
 };
 class Film {
+private:
 	string nameFilm;
-	int coast,place;
+	int coast, place;
 	Date date;
 public:
 
@@ -532,60 +501,8 @@ public:
 	friend class Database;
 };
 
+// умное меню
 
-class Menu : public Guest, public Admin, public AdminMenu {
-public:
-	template <class T, class T2>
-	static void createMenu(string& menu_description, vector<T2(T::*)()>& pMethod) {
-		int lengthArray = (int)pMethod.size() + 1;
-		int borderLimit = lengthArray - lengthArray + 1;
-		while (true) {
-			system("cls");
-			cout << menu_description;
-			cout << "Введите номер команды (-1 означает выход): ";
-			size_t command = Security::securityInt();
-			if (command == -1) {
-				break;
-			}
-			else if (command < borderLimit || command >= lengthArray) {
-				cout << "Введите значение от " << borderLimit << " до " << lengthArray - 1 << endl;
-				system("pause");
-			}
-			else if (pMethod[command - 1] == EXIT_FUNCTION) {
-				break;
-			}
-			else {
-				T object;
-				(object.*pMethod[(command)-1])();
-			}
-		}
-	}
-
-	template <class T>
-	static void createMenu(string& menu_description, vector<T(*)()>& pMethod) {
-		int lengthArray = (int)pMethod.size() + 1;
-		int borderLimit = lengthArray - lengthArray + 1;
-		while (true) {
-			system("cls");
-			cout << menu_description;
-			cout << "Введите номер команды (-1 означает выход): ";
-			size_t command = Security::securityInt();
-			if (command == -1) {
-				break;
-			}
-			else if (command < borderLimit || command >= lengthArray) {
-				cout << "Введите значение от " << borderLimit << " до " << lengthArray - 1 << endl;
-				system("pause");
-			}
-			else if (pMethod[command - 1] == EXIT_FUNCTION) {
-				break;   
-			}
-			else {
-				pMethod[(command)-1]();
-			}
-		}
-	}
-};
 
 // Перегрузка
 ostream& operator<<(ostream& out, const User& user);
@@ -614,7 +531,7 @@ void SortShell(vector<T>& arr, T2 T::* field)
 	}
 }
 
-
+void searchFilm();
 // -------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -624,9 +541,9 @@ int main() {
 	SetConsoleOutputCP(1251);
 	SetConsoleCP(1251);
 	system("cls");
-	vector<TYPE_METHOD> pFuncArray = { &Menu::Guest::log_in_account ,&Menu::Guest::reg_an_account, EXIT_FUNCTION };
+	vector<TYPE_METHOD> pFuncArray = { &SmartMenu::Guest::log_in_account ,&SmartMenu::Guest::reg_an_account, EXIT_FUNCTION };
 	string menu_description = "Главное меню\n\n1) Авторизация\n2) Регистрация\n3) Выход из системы\n";
-	Menu::createMenu(menu_description, pFuncArray);
+	SmartMenu::createMenu(menu_description, pFuncArray);
 	return 0;
 }
 
@@ -634,21 +551,6 @@ int main() {
 // -------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Перегрузки
-ostream& operator<<(ostream& out, Client& client)
-{
-	User user = client.get_User();
-	out << user;
-	//out << client.get_id() << "\n" << client.get_login()<< "\n" << client.get_password() << "\n" << client.role << endl;
-	return out;
-}
-istream& operator>>(istream& in, Client& client)
-{
-	User user = client.get_User();
-	in >> user;
-	client.set_User(user);
-	return in;
-}
-
 ostream& operator<<(ostream& out, const User& user)
 {
 
@@ -665,6 +567,19 @@ istream& operator>>(istream& in, User& point)
 	point.role = static_cast<Role>(temporary);
 	return in;
 }
+ostream& operator<<(ostream& out, Client& client)
+{
+	Client::User user = client;
+	out << user;
+	return out;
+}
+istream& operator>>(istream& in, Client& client)
+{
+	Client::User user = client;
+	in >> user;
+	return in;
+}
+
 
 ostream& operator << (ostream& os, const Film& p)
 {
@@ -735,7 +650,7 @@ void Guest::log_in_account() {
 
 		else if (psw == user.get_password()) {
 
-			cout << "Вы вошли как " << user.get_role() << endl;
+			cout << "С возвращением, мы рады вас видеть!\n";
 			session.login = user.get_login();
 			session.password = user.get_password();
 			session.role = user.get_role();
@@ -744,7 +659,7 @@ void Guest::log_in_account() {
 			system("pause");
 			system("cls");
 
-			showMenu(user.get_role());
+			checkRole(user.get_role());
 
 
 
@@ -758,15 +673,16 @@ void Guest::log_in_account() {
 
 	}
 }
-void Guest::showMenu(Role roleFromDb) {
-	Admin admin;
-	Client client;
+void Guest::checkRole(Role roleFromDb) {
+	ClientMenu clientMenu;
+	AdminMenu adminMenu;
 
-	vector<Client*> roleList = { &admin, &client };
+	vector<IMenu*> roleList = { &clientMenu, &adminMenu };
+
 	for (int i = 0; i < roleList.size(); i++)
 	{
-		if (roleList[i]->get_role() == roleFromDb) {
-			IShowMainMenu* ptr;
+		if (roleList[i]->get_status() == roleFromDb) {
+			IMenu* ptr;
 			ptr = roleList[i];
 			ptr->showMenu();
 			break;
@@ -784,7 +700,7 @@ void Guest::reg_an_account() {
 	cout << "РЕГИСТРАЦИЯ\n\n";
 	cout << "Введите ваш будующий логин: ";
 	string newMyLogin = Security::securityString();
-	
+
 	rewind(stdin);
 	user.set_login(newMyLogin);
 	while (true) {
@@ -838,7 +754,7 @@ void Guest::reg_an_account() {
 
 // FILMS
 void Admin::add_Film() {
-	
+
 	Film film;
 	film.fillData();
 
@@ -870,11 +786,22 @@ void Client::buyTicket() {
 	rewind(stdin);
 
 
+
+
 	if (!file.findOne(fileFilms, &Film::get_nameFilm, desired_film_name, film) || !file.is_file_exist(desired_film_name + ".txt")) {
 		cerr << "Такого фильма нет!\n";
 		system("pause");
 		return;
 	}
+
+
+	cout << "Информация о фильме:" << endl;
+	cout << "--------------------------------------------------------------------------------" << endl;
+	cout << "|       Название фильма         |      Всего мест       |   Стоимость билета   |" << endl;
+	cout << "--------------------------------------------------------------------------------" << endl;
+	cout << "|" << std::setw(31) << film.get_nameFilm() << "|" << setw(23) << film.get_place()
+		<< "|" << setw(22) << film.get_coast() << "|" << endl;
+	cout << "--------------------------------------------------------------------------------" << endl;
 
 	// Загружаем данные
 	vector<Place> places;
@@ -1178,7 +1105,7 @@ void AdminMenu::ShowMenuEdit() {
 	system("cls");
 	vector<TYPE_FUNCTION> pArrayFunc = { &Admin::editUserRole ,&Admin::editUserLogin, &Admin::editFilmName, EXIT_FUNCTION };
 	string menu_description = "Редактирование данных\n\n1) Изменить роль пользователя\n2) Изменить логин пользователя\n3) Изменить название фильма\n4) Вернуться назад\n";
-	Menu::createMenu(menu_description, pArrayFunc);
+	SmartMenu::createMenu(menu_description, pArrayFunc);
 }
 void Admin::editUserRole() {
 	system("cls");
@@ -1257,7 +1184,8 @@ void Admin::editUserLogin() {
 	bool isResult_Find = file.findOne(fileUser, &User::get_login, desiredUser, user);
 	if (!isResult_Find) {
 		cout << "В базе данных нет такого пользователя.\n";
-		system("cls");
+		system("pause");
+		
 		return;
 	}
 
@@ -1271,7 +1199,7 @@ void Admin::editUserLogin() {
 	bool isExist_new_login = file.findOne(fileUser, &User::get_login, newLoginUser, user);
 	if (isExist_new_login) {
 		cout << "В базе данных уже есть пользователь с таким логином.\n";
-		system("cls");
+		system("pause");
 		return;
 	}
 	vector<User> users;
@@ -1442,7 +1370,7 @@ void AdminMenu::ShowMenuSort() {
 	system("cls");
 	vector<TYPE_FUNCTION> pArrayFunc = { &AdminMenu::sortLoginUser ,&AdminMenu::sortNameFilm, &AdminMenu::sortFilmDate,EXIT_FUNCTION };
 	string menu_description = "Сортировка данных\n\n1) Сортировать пользователей по логину\n2) Сортировать название фильмов\n3) Сортировать билеты по дате\n4) Вернуться назад\n";
-	Menu::createMenu(menu_description, pArrayFunc);
+	SmartMenu::createMenu(menu_description, pArrayFunc);
 
 }
 void AdminMenu::sortLoginUser() {
@@ -1557,7 +1485,7 @@ string Security::securityString() {
 				cout << "Введите еще раз: ";
 				break;
 			}
-			
+
 		}
 		if (flag == 0) break;
 	}
@@ -1571,6 +1499,7 @@ void Security::InputPassword(string& password)
 		ch = _getch();
 		if (ch == 13) // enter
 		{
+
 			break;
 		}
 		else if (ch == 8)
@@ -1592,8 +1521,14 @@ void Security::InputPassword(string& password)
 		}
 	}
 	cout << "\n";
-	if (!password.empty())
+	if (!password.empty()) {
 		return;
+	}
+	else if (password == "") {
+		cout << "Пароль не может быть пустым!\n";
+		cout << "Введите пароль еще раз: ";
+		InputPassword(password);
+	}
 	else
 		cout << "Введите пароль!\n" << endl;;
 }
@@ -1614,7 +1549,12 @@ void Security::securityDate(int& day, int& month, int& year) {
 	}
 }
 
-// Меню Юзера
+// Конструктор по умолчанию
+Admin::Admin() {
+	this->set_role(ADMIN);
+}
+
+// Возможности Юзера
 void Client::show_Free_Place_On_Film() {
 	system("cls");
 	cout << "Список свободных мест\n\n";
@@ -1672,5 +1612,195 @@ void Client::show_my_Tickets() {
 	system("pause");
 	tickets.clear();
 }
+Client::Client() {
+	this->set_role(USER);
+}
+
+// Меню Юзера
+void ClientMenu::showPunktMenu() {
+	cout << "1)Купить билет\n";
+	cout << "2)Посмотреть свободные места на фильм\n";
+	cout << "3)Мои билеты\n";
+	cout << "4)Поиск фильма\n";
+	cout << "5)Выйти из аккаунта\n";
+	cout << "Выберите пункт: ";
+}
+bool ClientMenu::showChecks(int command) {
+	bool isResult = true;
+	if (command == 1) {
+		Client client;
+		client.buyTicket();
+	}
+	else if (command == 2) {
+		Client::show_Free_Place_On_Film();
+	}
+	else if (command == 3) {
+		Client client;
+		client.show_my_Tickets();
+	}
+	else if (command == 4) {
+		searchFilm();
+	}
+	else if (command == 5) {
+		isResult = false;
+		return isResult;
+	}
+
+	return isResult;
+}
+void ClientMenu::showMenu() {
+	bool flag = true;
+	while (flag) {
+		system("cls");
+		cout << "_____________________ГЛАВНОЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ_____________\n\n" << endl;
+		this->showPunktMenu();
+		int command = Security::securityInt();
+		flag = this->showChecks(command);
+	}
+}
+
+// Меню Админа
+void AdminMenu::showPanelAdmin() {
+	while (true)
+	{
+		system("cls");
+		cout << "_____________________ГЛАВНОЕ МЕНЮ АДМИНИСТРАТОРА_____________\n\n" << endl;
+
+		cout << "Главное меню\n\n";
+		cout << "1) Отобразить список\n";
+		cout << "2) Добавить данные\n";
+		cout << "3) Редактировать данные\n";
+		cout << "4) Удалить данные\n";
+		cout << "5) Соритровка данных\n";
+		cout << "6) Поиск пользователя по логину\n";
+		cout << "7) Войти в пользовательский режим\n";
+		cout << "8) Выйти из cистемы\n";
+		cout << "Введите номер команды: ";
+		int command = Security::securityInt();
+		if (command == 1) {
+			AdminMenu::ShowMenuData();
+		}
+		else if (command == 2) {
+			AdminMenu::ShowMenuAdd();
+		}
+		else if (command == 3)
+		{
+			AdminMenu::ShowMenuEdit();
+		}
+		else if (command == 4)
+		{
+			AdminMenu::ShowMenuDelete();
+		}
+		else if (command == 5)
+		{
+			AdminMenu::ShowMenuSort();
+		}
+		else if (command == 6)
+		{
+			AdminMenu::searchUser();
+		}
+		else if (command == 7)
+		{
+			break;
+		}
+		else if (command == 8) // Выход из аккаунта
+		{
+			system("cls");
+			cout << "Вы вышли из системы\n";
+			exit(1);
+		}
+
+	}
+
+}
+bool AdminMenu::showChecks(int command) {
 
 
+	if (command == 0) {
+		this->showPanelAdmin();
+	}
+	bool isReult = ClientMenu::showChecks(command);
+	return isReult;
+}
+void AdminMenu::showMenu() {
+	bool flag = true;
+	while (flag) {
+		system("cls");
+		cout << "_____________________ГЛАВНОЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ / АДМИНА_____________\n\n" << endl;
+		this->showPunktMenu();
+
+		int command = Security::securityInt();
+		flag = this->showChecks(command);
+
+
+
+	}
+}
+void AdminMenu::showPunktMenu() {
+	cout << "0)Перейти в панель администратора\n";
+	ClientMenu::showPunktMenu();
+}
+
+void AdminMenu::searchUser() {
+
+	vector<User> users;
+
+	cout << "Введите логин пользователя: ";
+	string login;
+	cin >> login;
+	rewind(stdin);
+	file.findAll(fileUser, users);
+	bool isResult = false;
+	for (size_t i = 0; i < users.size(); i++) {
+		if (login == users[i].get_login()) {
+			isResult = true;
+			cout << "Список всех пользователей\n" << endl;
+			cout << "---------------------------------------------------" << endl;
+			cout << "|      Логин      |      Пароль      |   Статус   |" << endl;
+			cout << "---------------------------------------------------" << endl;
+
+
+			cout << "|" << setw(16) << users[i].get_login() << " |" << setw(17) << users[i].get_password()
+				<< " |" << setw(11) << users[i].get_role() << " |" << endl;
+
+			cout << "---------------------------------------------------" << endl;
+			system("pause");
+			return;
+		}
+	}
+	if (!isResult) {
+		cout << "Такого аккаунта нет!\n";
+		system("pause");
+	}
+
+
+}
+
+
+void searchFilm() {
+	system("cls");
+	cout << "Введите название фильма: ";
+	Film film;
+	string nameFilm;
+	cin >> nameFilm;
+	rewind(stdin);
+	bool isResult = file.findOne(fileFilms, &Film::get_nameFilm, nameFilm, film);
+
+	if (!isResult) {
+		cout << "Ничего о фильме <" << nameFilm << "> не было найдено\n";
+		system("pause");
+		return;
+	}
+
+	cout << "Информация о фильме <" << nameFilm << ">" << endl;
+	cout << "---------------------------------------------------------------------------------------------------------------" << endl;
+	cout << "|       Название фильма         |      Свободных мест       |   Стоимость билета   |    Дата начала фильма    |" << endl;
+	cout << "---------------------------------------------------------------------------------------------------------------" << endl;
+
+	cout << "|" << setw(31) << film.get_nameFilm()
+		<< "|" << setw(27) << film.get_place() <<
+		"|" << setw(22) << film.get_coast() << "|" << setw(18) << film.get_date().get_day() << "." << film.get_date().get_month() << "." << film.get_date().get_year() << " |" << endl;
+	cout << "---------------------------------------------------------------------------------------------------------------" << endl;
+
+	system("pause");
+}

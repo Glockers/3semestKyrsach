@@ -1,12 +1,12 @@
 1
-1
-max
+0
+NONE
 2
 0
 NONE
 3
-1
-max
+0
+NONE
 4
 0
 NONE
